@@ -30,12 +30,9 @@ Runs as a fully static site on GitHub Pages (no backend, no build tools).
 
 Open `index.html` in a browser.
 
-## Publish on GitHub Pages
+## View on GitHub Pages
 
-1. Push this repository to GitHub.
-2. In GitHub: `Settings -> Pages`.
-3. Set source to `GitHub Actions` (workflow included) or `Deploy from a branch`.
-4. If using branch deploy, choose `main` and `/ (root)`.
+[https://majkey25.github.io/buffoncalc/](https://majkey25.github.io/buffoncalc/)
 
 ## Project structure
 
