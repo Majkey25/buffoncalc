@@ -85,35 +85,37 @@
         <article class="metric-card card fade-in"><h3>pi_hat CI width</h3><p id="outPiCIWidth">-</p></article>
         <article class="metric-card card fade-in"><h3>z-test (P_hat vs P_theory)</h3><p id="outZTest">-</p></article>
       </div>
-      <p id="ciNote" class="note">Pro normalni aproximaci CI je potreba N_done &gt;= 30.</p>
-      <p id="piCiNote" class="note">pi_hat CI requires l &lt;= t, K &gt; 0, N_done &gt;= 30.</p>
-      <p id="zTestNote" class="note">z-test uses normal approximation and alpha = 0.05.</p>
       <p id="progress" class="progress">Postup: 0 / 0</p>
 
       <div class="card chart-card fade-in">
         <h3 id="piChartTitle" data-i18n="piChartTitle">pi_hat podle poctu hodu</h3>
         <div class="chart-wrap"><canvas id="piChart"></canvas></div>
+        <p class="note">* Graf ukazuje odhad pi_hat (nebo P_hat pro l &gt; t) v zavislosti na N_done.</p>
       </div>
 
       <div class="card chart-card fade-in">
         <h3 id="errorChartTitle" data-i18n="errorChartTitle">|pi_hat - pi| podle poctu hodu</h3>
         <div class="chart-wrap"><canvas id="errorChart"></canvas></div>
+        <p class="note">* Graf ukazuje chybu odhadu v zavislosti na poctu hodu.</p>
       </div>
 
       <div class="card chart-card fade-in">
         <h3>CI width of pi_hat over N_done</h3>
         <div class="chart-wrap"><canvas id="ciWidthChart"></canvas></div>
+        <p class="note">* Graf ukazuje sirku 95% intervalu pro pi_hat (kdyz je definovan).</p>
       </div>
 
       <div class="card chart-card fade-in">
         <h3>P_hat - P_theory over N_done</h3>
         <div class="chart-wrap"><canvas id="pDiffChart"></canvas></div>
+        <p class="note">* Graf ukazuje rozdil mezi empirickou a teoretickou pravdepodobnosti.</p>
       </div>
 
       <div class="card chart-card fade-in">
         <h3>log10(error) vs log10(N_done)</h3>
         <p id="slopeText" class="note">Estimated slope: -</p>
         <div class="chart-wrap"><canvas id="convChart"></canvas></div>
+        <p class="note">* Log-log pohled na konvergenci; sklon blizko -0.5 odpovida O(1/sqrt(N)).</p>
       </div>
 
       <div class="card fade-in">
@@ -131,7 +133,7 @@
         <h3 id="viz-title" data-i18n="vizTitle">Vizualizace hodu</h3>
         <div class="toggle-row">
           <input id="keepNeedlesSwitch" type="checkbox">
-          <label for="keepNeedlesSwitch" data-i18n="keepNeedlesLabel">Uchovat vsechny jehly (ON/OFF)</label>
+          <label for="keepNeedlesSwitch" data-i18n="keepNeedlesLabel">Uchovat vsechny jehly</label>
         </div>
         <canvas id="throwCanvas" width="900" height="300"></canvas>
       </div>

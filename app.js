@@ -184,7 +184,6 @@
     stepExplain: document.getElementById('stepExplain'),
     status: document.getElementById('status'),
     progress: document.getElementById('progress'),
-    ciNote: document.getElementById('ciNote'),
     slopeText: document.getElementById('slopeText'),
     outPTheory: document.getElementById('outPTheory'),
     outK: document.getElementById('outK'),
@@ -395,7 +394,6 @@
 
     dom.outCILow.textContent = m.ciLow === null ? '-' : fmtNum(m.ciLow, 6);
     dom.outCIHigh.textContent = m.ciHigh === null ? '-' : fmtNum(m.ciHigh, 6);
-    dom.ciNote.textContent = m.ciReady ? t('ciShown') : t('ciNeedN');
     dom.outPiCILow.textContent = m.piCiLow === null ? '-' : fmtNum(m.piCiLow, 6);
     dom.outPiCIHigh.textContent = m.piCiHigh === null ? '-' : fmtNum(m.piCiHigh, 6);
     dom.outPiCIWidth.textContent = m.piCiWidth === null ? '-' : fmtNum(m.piCiWidth, 6);
