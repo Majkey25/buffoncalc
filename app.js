@@ -541,6 +541,19 @@
     }
   }
 
+  function configureChartDensity() {
+    const n = state.params.N;
+    if (n <= 1000) {
+      state.chartStep = 1;
+    } else if (n <= 10000) {
+      state.chartStep = 5;
+    } else if (n <= 100000) {
+      state.chartStep = 20;
+    } else {
+      state.chartStep = 50;
+    }
+  }
+
   function stopSimulation() {
     if (state.rafId !== null) {
       cancelAnimationFrame(state.rafId);
@@ -621,7 +634,10 @@
           legend: { display: false }
         },
         elements: {
-          point: { radius: 0 },
+          point: {
+            radius: (ctx) => (state.params.N <= 1000 ? 2 : 0),
+            hoverRadius: 4
+          },
           line: { borderWidth: 2 }
         }
       }
@@ -682,6 +698,7 @@
   function onStart() {
     resetForNewRun();
     state.params = parseAndClampInputs();
+    configureChartDensity();
     state.rng = makeRng(state.params.seed);
     setRunButtons();
     refreshOutputs();
@@ -709,6 +726,7 @@
   function onReset() {
     resetForNewRun();
     state.params = parseAndClampInputs();
+    configureChartDensity();
     state.rng = makeRng(state.params.seed);
     drawVisualization();
     setStatus(t('resetDone'));
@@ -754,6 +772,7 @@
     prefillFromQuery();
     initLanguage();
     state.params = parseAndClampInputs();
+    configureChartDensity();
     state.rng = makeRng(state.params.seed);
     initCharts();
     bindEvents();
