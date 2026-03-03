@@ -1,7 +1,5 @@
 ![License](https://img.shields.io/github/license/Majkey25/buffoncalc?style=flat-square)
 ![Last Commit](https://img.shields.io/github/last-commit/Majkey25/buffoncalc?style=flat-square)
-![Repo Size](https://img.shields.io/github/repo-size/Majkey25/buffoncalc?style=flat-square)
-![Stars](https://img.shields.io/github/stars/Majkey25/buffoncalc?style=flat-square)
 ![Forks](https://img.shields.io/github/forks/Majkey25/buffoncalc?style=flat-square)
 ![Issues](https://img.shields.io/github/issues/Majkey25/buffoncalc?style=flat-square)
 # BuffonCalc
