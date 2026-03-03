@@ -103,9 +103,14 @@
         <div class="theory-content">
           <p data-i18n="theoryCond">Podmínka průsečíku: <code>x &lt;= (l/2) * sin(theta)</code></p>
           <p data-i18n="theoryVars">Proměnné: <code>x in [0, t/2]</code>, <code>theta in [0, pi/2]</code></p>
+          <p data-i18n="theoryProcess">Prubeh simulace: v kazdem hodu se nahodne vylosuje <code>theta</code> a <code>x</code>, overi se podminka pruseciku a aktualizuje se pocitadlo <code>K</code>.</p>
+          <p data-i18n="theoryCounts"><code>N_done</code> je pocet uz provedenych hodu, <code>K</code> je pocet pruseciku.</p>
+          <p data-i18n="theoryPhat"><code>P_hat = K / N_done</code> je empiricky odhad pravdepodobnosti pruseciku ze simulace.</p>
           <p data-i18n="theoryShort">Pro <code>l &lt;= t</code>: <code>P = (2l)/(pi t)</code></p>
           <p data-i18n="theoryLong">Pro <code>l &gt; t</code>: <code>P = (2/pi) * ((l/t) - sqrt((l/t)^2 - 1) + arccos(t/l))</code></p>
           <p data-i18n="theoryPi">Pro <code>l &lt;= t</code> odhad: <code>pi_hat = (2l * N_done) / (t * K)</code> při <code>K &gt; 0</code></p>
+          <p data-i18n="theoryPiUse"><code>pi_hat</code> je odhad cisla <code>pi</code> ze simulace a ma smysl pouze pro <code>l &lt;= t</code>.</p>
+          <p data-i18n="theoryErrors">Chyby: <code>abs error = |pi_hat - pi|</code>, <code>rel error = |pi_hat - pi| / pi</code>. S rostoucim <code>N_done</code> se odhad obvykle stabilizuje.</p>
         </div>
       </details>
     </section>
