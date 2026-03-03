@@ -529,8 +529,10 @@
   function sampleChartsIfNeeded(force = false) {
     const metrics = computeMetrics();
     const longNeedle = state.params.l > state.params.t;
-    const yMain = longNeedle ? metrics.pHat : metrics.piHat;
-    const yErr = longNeedle ? metrics.probAbsError : metrics.absError;
+    const yMain = longNeedle ? metrics.pHat : (metrics.piHat ?? metrics.pHat);
+    const yErr = longNeedle
+      ? metrics.probAbsError
+      : (metrics.absError ?? metrics.probAbsError);
     if (yMain === null) return;
 
     if (force || state.N_done % state.chartStep === 0 || state.N_done === state.params.N) {
@@ -568,7 +570,10 @@
         return;
       }
 
-      const chunk = Math.min(remaining, 130);
+      let targetChunk = 130;
+      if (state.params.N <= 300) targetChunk = 1;
+      else if (state.params.N <= 2000) targetChunk = 5;
+      const chunk = Math.min(remaining, targetChunk);
       for (let i = 0; i < chunk; i += 1) {
         const throwData = buildNeedleRecord(simulateThrow(state.params.t, state.params.l, state.rng), state.rng);
         state.N_done += 1;
