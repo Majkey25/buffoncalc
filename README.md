@@ -1,18 +1,13 @@
+![License](https://img.shields.io/github/license/Majkey25/buffoncalc?style=flat-square)
+![Last Commit](https://img.shields.io/github/last-commit/Majkey25/buffoncalc?style=flat-square)
+![Repo Size](https://img.shields.io/github/repo-size/Majkey25/buffoncalcstyle=flat-square)
+![Stars](https://img.shields.io/github/stars/Majkey25/buffoncalc?style=flat-square)
+![Forks](https://img.shields.io/github/forks/Majkey25/buffoncalc?style=flat-square)
+![Issues](https://img.shields.io/github/issues/Majkey25/buffoncalc?style=flat-square)
 # BuffonCalc
 
 Interactive Buffon's Needle calculator and Monte Carlo simulator built with plain HTML, CSS, and JavaScript.  
 Runs as a fully static site on GitHub Pages (no backend, no build tools).
-
-## Badges / Stats
-
-Replace `OWNER/REPO` with your real GitHub path.
-
-![License](https://img.shields.io/github/license/OWNER/REPO?style=flat-square)
-![Last Commit](https://img.shields.io/github/last-commit/OWNER/REPO?style=flat-square)
-![Repo Size](https://img.shields.io/github/repo-size/OWNER/REPO?style=flat-square)
-![Stars](https://img.shields.io/github/stars/OWNER/REPO?style=flat-square)
-![Forks](https://img.shields.io/github/forks/OWNER/REPO?style=flat-square)
-![Issues](https://img.shields.io/github/issues/OWNER/REPO?style=flat-square)
 
 ## Features
 
