@@ -1,0 +1,20 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+*.log
+
+# Runtime artifacts
+coverage/
+dist/
+build/
+
+# Local env
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buffon's Needle Simulator</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="app-header container card fade-in">
+    <div>
+      <h1 data-i18n="appTitle">Buffonův simulátor jehly</h1>
+      <p class="subtitle" data-i18n="appSubtitle">Interaktivní kalkulačka a Monte Carlo simulace</p>
+    </div>
+    <div class="field inline-field">
+      <span class="switch-label" data-i18n="languageLabel">Jazyk</span>
+      <button id="langSwitch" class="lang-switch" type="button" aria-label="Language switch" aria-pressed="false">
+        <span class="lang-chip" data-lang="cs">CS</span>
+        <span class="lang-chip" data-lang="en">EN</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container layout">
+    <section class="panel card fade-in" aria-labelledby="inputs-title">
+      <h2 id="inputs-title" data-i18n="inputsTitle">Vstupy</h2>
+      <form id="controlsForm" novalidate>
+        <div class="field-grid">
+          <div class="field">
+            <label for="tInput" data-i18n="lineDistanceLabel">Vzdálenost přímek t</label>
+            <input id="tInput" name="t" type="number" min="0.0001" step="any" value="10" inputmode="decimal">
+          </div>
+          <div class="field">
+            <label for="lInput" data-i18n="needleLengthLabel">Délka jehly l</label>
+            <input id="lInput" name="l" type="number" min="0.0001" step="any" value="7" inputmode="decimal">
+          </div>
+          <div class="field">
+            <label for="nInput" data-i18n="throwsLabel">Počet hodů N</label>
+            <input id="nInput" name="N" type="number" min="1" max="1000000" step="1" value="500000" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="seedInput" data-i18n="seedLabel">RNG seed (volitelné)</label>
+            <input id="seedInput" name="seed" type="number" step="1" value="12345" inputmode="numeric" placeholder="prázdné = Math.random">
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <input id="previewToggle" type="checkbox" checked>
+          <label for="previewToggle" data-i18n="previewToggleLabel">Zobrazit náhled jednoho hodu</label>
+        </div>
+
+        <div class="toggle-row">
+          <input id="extendedToggle" type="checkbox">
+          <label for="extendedToggle" data-i18n="extendedToggleLabel">Použít rozšířený vzorec pro l &gt; t</label>
+        </div>
+        <p class="input-note" data-i18n="extendedNote">Rozšířený vzorec se používá jen pro l &gt; t.</p>
+
+        <div class="button-row">
+          <button id="startBtn" class="btn" type="button" data-i18n="startBtn">Start</button>
+          <button id="pauseBtn" class="btn" type="button" disabled data-i18n="pauseBtn">Pauza</button>
+          <button id="resetBtn" class="btn ghost" type="button" data-i18n="resetBtn">Reset</button>
+          <button id="keepNeedlesBtn" class="btn ghost" type="button" data-i18n="keepNeedlesOff">Uchovat vsechny jehly: Vypnuto</button>
+        </div>
+      </form>
+
+      <p id="status" class="status" aria-live="polite">Připraveno.</p>
+    </section>
+
+    <section class="panel outputs" aria-labelledby="outputs-title">
+      <h2 id="outputs-title" data-i18n="outputsTitle">Výstupy</h2>
+      <div class="cards-grid">
+        <article class="metric-card card fade-in"><h3>P_theory</h3><p id="outPTheory">-</p></article>
+        <article class="metric-card card fade-in"><h3 data-i18n="intersectionsLabel">Průsečíky K</h3><p id="outK">0</p></article>
+        <article class="metric-card card fade-in"><h3>P_hat</h3><p id="outPHat">-</p></article>
+        <article class="metric-card card fade-in"><h3>pi_hat</h3><p id="outPiHat">-</p></article>
+        <article class="metric-card card fade-in"><h3 data-i18n="absErrorLabel">Absolutní chyba</h3><p id="outAbsErr">-</p></article>
+        <article class="metric-card card fade-in"><h3 data-i18n="relErrorLabel">Relativní chyba</h3><p id="outRelErr">-</p></article>
+        <article class="metric-card card fade-in"><h3 data-i18n="ciLowLabel">CI dolní (95%)</h3><p id="outCILow">-</p></article>
+        <article class="metric-card card fade-in"><h3 data-i18n="ciHighLabel">CI horní (95%)</h3><p id="outCIHigh">-</p></article>
+      </div>
+      <p id="ciNote" class="note">Pro normální aproximaci CI je potřeba N_done &gt;= 30.</p>
+      <p id="progress" class="progress">Postup: 0 / 0</p>
+
+      <div class="card chart-card fade-in">
+        <h3 id="piChartTitle" data-i18n="piChartTitle">pi_hat podle počtu hodů</h3>
+        <div class="chart-wrap"><canvas id="piChart"></canvas></div>
+      </div>
+
+      <div class="card chart-card fade-in">
+        <h3 id="errorChartTitle" data-i18n="errorChartTitle">|pi_hat - pi| podle počtu hodů</h3>
+        <div class="chart-wrap"><canvas id="errorChart"></canvas></div>
+      </div>
+
+      <div class="card viz-card fade-in" aria-labelledby="viz-title">
+        <h3 id="viz-title" data-i18n="vizTitle">Vizualizace hodu</h3>
+        <canvas id="throwCanvas" width="900" height="300"></canvas>
+      </div>
+
+      <details class="card theory fade-in">
+        <summary data-i18n="theoryTitle">Teorie</summary>
+        <div class="theory-content">
+          <p data-i18n="theoryCond">Podmínka průsečíku: <code>x &lt;= (l/2) * sin(theta)</code></p>
+          <p data-i18n="theoryVars">Proměnné: <code>x in [0, t/2]</code>, <code>theta in [0, pi/2]</code></p>
+          <p data-i18n="theoryShort">Pro <code>l &lt;= t</code>: <code>P = (2l)/(pi t)</code></p>
+          <p data-i18n="theoryLong">Pro <code>l &gt; t</code>: <code>P = (2/pi) * ((l/t) - sqrt((l/t)^2 - 1) + arccos(t/l))</code></p>
+          <p data-i18n="theoryPi">Pro <code>l &lt;= t</code> odhad: <code>pi_hat = (2l * N_done) / (t * K)</code> při <code>K &gt; 0</code></p>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="container app-footer">
+    <small>
+      <span data-i18n="footerText">BuffonCalc - statická aplikace pro výuku pravděpodobnosti</span>
+      |
+      <a id="repoLink" href="https://github.com/Majkey25/buffoncalc.git" target="_blank" rel="noopener noreferrer" data-i18n="repoLinkText">Repozitar</a>
+    </small>
+  </footer>
+</body>
+</html>
