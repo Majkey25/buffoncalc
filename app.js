@@ -564,7 +564,7 @@
         state.N_done += 1;
         if (throwData.intersect) state.K += 1;
         state.lastThrow = throwData;
-        if (state.keepAllNeedles) state.needleHistory.push(throwData);
+        state.needleHistory.push(throwData);
       }
 
       sampleChartsIfNeeded(false);
@@ -701,11 +701,6 @@
 
   function onToggleNeedleHistory() {
     state.keepAllNeedles = !state.keepAllNeedles;
-    if (!state.keepAllNeedles) {
-      state.needleHistory = [];
-    } else if (state.lastThrow) {
-      state.needleHistory = [state.lastThrow];
-    }
     updateKeepNeedlesButton();
     drawVisualization();
   }
