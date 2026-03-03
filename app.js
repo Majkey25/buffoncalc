@@ -360,11 +360,13 @@
 
   function updateChartTitles() {
     const longNeedle = state.params.l > state.params.t;
-    dom.piChartTitle.textContent = longNeedle ? t('piChartTitleProb') : t('piChartTitle');
-    dom.errorChartTitle.textContent = longNeedle ? t('errorChartTitleProb') : t('errorChartTitle');
+    const noIntersectionsYet = !longNeedle && state.K === 0;
+    const useProbView = longNeedle || noIntersectionsYet;
+    dom.piChartTitle.textContent = useProbView ? t('piChartTitleProb') : t('piChartTitle');
+    dom.errorChartTitle.textContent = useProbView ? t('errorChartTitleProb') : t('errorChartTitle');
     if (state.charts.piChart && state.charts.errorChart) {
-      state.charts.piChart.data.datasets[0].label = longNeedle ? 'P_hat' : 'pi_hat';
-      state.charts.errorChart.data.datasets[0].label = longNeedle ? '|P_hat - P_theory|' : '|pi_hat - pi|';
+      state.charts.piChart.data.datasets[0].label = useProbView ? 'P_hat' : 'pi_hat';
+      state.charts.errorChart.data.datasets[0].label = useProbView ? '|P_hat - P_theory|' : '|pi_hat - pi|';
       state.charts.piChart.update('none');
       state.charts.errorChart.update('none');
     }
@@ -529,10 +531,14 @@
   function sampleChartsIfNeeded(force = false) {
     const metrics = computeMetrics();
     const longNeedle = state.params.l > state.params.t;
-    const yMain = longNeedle ? metrics.pHat : (metrics.piHat ?? metrics.pHat);
+    let yMain = longNeedle ? metrics.pHat : (metrics.piHat ?? metrics.pHat);
     const yErr = longNeedle
       ? metrics.probAbsError
       : (metrics.absError ?? metrics.probAbsError);
+    if (!longNeedle && metrics.piHat === null && yMain === 0) {
+      // Keep a visible line even before first intersection.
+      yMain = 1e-6;
+    }
     if (yMain === null) return;
 
     if (force || state.N_done % state.chartStep === 0 || state.N_done === state.params.N) {
