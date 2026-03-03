@@ -87,6 +87,15 @@
       </div>
       <p id="progress" class="progress">Postup: 0 / 0</p>
 
+      <div class="card viz-card fade-in" aria-labelledby="viz-title">
+        <h3 id="viz-title" data-i18n="vizTitle">Vizualizace hodu</h3>
+        <div class="toggle-row">
+          <input id="keepNeedlesSwitch" type="checkbox">
+          <label for="keepNeedlesSwitch" data-i18n="keepNeedlesLabel">Uchovat vsechny jehly</label>
+        </div>
+        <canvas id="throwCanvas" width="900" height="300"></canvas>
+      </div>
+
       <div class="card chart-card fade-in">
         <h3 id="piChartTitle" data-i18n="piChartTitle">pi_hat podle poctu hodu</h3>
         <div class="chart-wrap"><canvas id="piChart"></canvas></div>
@@ -127,15 +136,6 @@
             <tr><th>rel error pi_hat</th><td id="devPiRel">-</td></tr>
           </tbody>
         </table>
-      </div>
-
-      <div class="card viz-card fade-in" aria-labelledby="viz-title">
-        <h3 id="viz-title" data-i18n="vizTitle">Vizualizace hodu</h3>
-        <div class="toggle-row">
-          <input id="keepNeedlesSwitch" type="checkbox">
-          <label for="keepNeedlesSwitch" data-i18n="keepNeedlesLabel">Uchovat vsechny jehly</label>
-        </div>
-        <canvas id="throwCanvas" width="900" height="300"></canvas>
       </div>
 
       <details class="card theory fade-in">
