@@ -69,10 +69,15 @@
       previewHint: 'Zapnete nahled nebo spustte animovanou simulaci.',
       lastThrowHit: 'Posledni hod: prusecik',
       lastThrowMiss: 'Posledni hod: bez pruseciku',
-      xAxisLabel: 'N_done'
-      ,
-      keepNeedlesOff: 'Uchovat vsechny jehly: Vypnuto',
-      keepNeedlesOn: 'Uchovat vsechny jehly: Zapnuto'
+      xAxisLabel: 'N_done',
+      keepNeedlesLabel: 'Uchovat vsechny jehly (ON/OFF)',
+      stepModeOff: 'tezim step by step: OFF',
+      stepModeOn: 'tezim step by step: ON',
+      stepIdle: 'Step mode: zapni tlacitko a klikni Start.',
+      stepThrow: 'Step hod',
+      slopeText: 'Odhad sklonu log-log: ',
+      zReject: 'zamita H0 (p<0.05)',
+      zKeep: 'nezamita H0 (p>=0.05)'
     },
     en: {
       appTitle: "Buffon's Needle Simulator",
@@ -132,8 +137,14 @@
       lastThrowHit: 'Last throw: intersection',
       lastThrowMiss: 'Last throw: no intersection',
       xAxisLabel: 'N_done',
-      keepNeedlesOff: 'Keep all needles: Off',
-      keepNeedlesOn: 'Keep all needles: On'
+      keepNeedlesLabel: 'Keep all needles (ON/OFF)',
+      stepModeOff: 'tezim step by step: OFF',
+      stepModeOn: 'tezim step by step: ON',
+      stepIdle: 'Step mode: enable button and click Start.',
+      stepThrow: 'Step throw',
+      slopeText: 'Estimated log-log slope: ',
+      zReject: 'reject H0 (p<0.05)',
+      zKeep: 'do not reject H0 (p>=0.05)'
     }
   };
 
@@ -146,17 +157,14 @@
     lastThrow: null,
     rng: Math.random,
     rafId: null,
-    charts: {
-      piChart: null,
-      errorChart: null
-    },
-    series: {
-      pi: [],
-      absErr: []
-    },
+    charts: { piChart: null, errorChart: null, ciWidthChart: null, pDiffChart: null, convChart: null },
+    series: { pi: [], absErr: [], piCiWidth: [], pDiff: [], conv: [] },
     chartStep: 50,
     lang: defaults.lang,
     keepAllNeedles: false,
+    stepMode: false,
+    stepDelayMs: 550,
+    lastStepTs: 0,
     needleHistory: []
   };
 
@@ -171,10 +179,13 @@
     startBtn: document.getElementById('startBtn'),
     pauseBtn: document.getElementById('pauseBtn'),
     resetBtn: document.getElementById('resetBtn'),
-    keepNeedlesBtn: document.getElementById('keepNeedlesBtn'),
+    keepNeedlesSwitch: document.getElementById('keepNeedlesSwitch'),
+    stepModeBtn: document.getElementById('stepModeBtn'),
+    stepExplain: document.getElementById('stepExplain'),
     status: document.getElementById('status'),
     progress: document.getElementById('progress'),
     ciNote: document.getElementById('ciNote'),
+    slopeText: document.getElementById('slopeText'),
     outPTheory: document.getElementById('outPTheory'),
     outK: document.getElementById('outK'),
     outPHat: document.getElementById('outPHat'),
@@ -183,88 +194,71 @@
     outRelErr: document.getElementById('outRelErr'),
     outCILow: document.getElementById('outCILow'),
     outCIHigh: document.getElementById('outCIHigh'),
+    outPiCILow: document.getElementById('outPiCILow'),
+    outPiCIHigh: document.getElementById('outPiCIHigh'),
+    outPiCIWidth: document.getElementById('outPiCIWidth'),
+    outZTest: document.getElementById('outZTest'),
+    devPHat: document.getElementById('devPHat'),
+    devPiAbs: document.getElementById('devPiAbs'),
+    devPiRel: document.getElementById('devPiRel'),
     throwCanvas: document.getElementById('throwCanvas'),
     piChartTitle: document.getElementById('piChartTitle'),
     errorChartTitle: document.getElementById('errorChartTitle')
   };
 
-  function t(key) {
-    return translations[state.lang][key] || key;
-  }
+  const t = (key) => translations[state.lang][key] || key;
+  const fmtNum = (v, digits = 6) => (Number.isFinite(v) ? Number(v).toFixed(digits) : '-');
+  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+  const setStatus = (msg) => { dom.status.textContent = msg; };
 
-  function fmtNum(v, digits = 6) {
-    if (!Number.isFinite(v)) return '-';
-    return Number(v).toFixed(digits);
-  }
-
-  function clamp(v, min, max) {
-    return Math.min(max, Math.max(min, v));
-  }
-
-  function setStatus(message) {
-    dom.status.textContent = message;
+  function normalCdf(x) {
+    const z = Math.abs(x);
+    const tv = 1 / (1 + 0.2316419 * z);
+    const d = 0.3989423 * Math.exp((-z * z) / 2);
+    let p = d * tv * (0.3193815 + tv * (-0.3565638 + tv * (1.781478 + tv * (-1.821256 + tv * 1.330274))));
+    p = 1 - p;
+    return x < 0 ? 1 - p : p;
   }
 
   function applyLanguage() {
     document.documentElement.lang = state.lang;
     dom.langSwitch.setAttribute('aria-pressed', String(state.lang === 'en'));
-    dom.langSwitch.querySelectorAll('.lang-chip').forEach((chip) => {
-      chip.classList.toggle('active', chip.dataset.lang === state.lang);
-    });
-
+    dom.langSwitch.querySelectorAll('.lang-chip').forEach((chip) => chip.classList.toggle('active', chip.dataset.lang === state.lang));
     document.querySelectorAll('[data-i18n]').forEach((el) => {
-      const key = el.getAttribute('data-i18n');
-      const value = t(key);
-      if (value.includes('<code>')) {
-        el.innerHTML = value;
-      } else {
-        el.textContent = value;
-      }
+      const val = t(el.getAttribute('data-i18n'));
+      if (val.includes('<code>')) el.innerHTML = val; else el.textContent = val;
     });
-
     dom.seedInput.placeholder = t('seedPlaceholder');
-    updateKeepNeedlesButton();
-    updateChartTitles();
+    syncKeepNeedlesSwitch();
+    updateStepModeButton();
     refreshOutputs();
     drawVisualization();
-    if (state.charts.piChart && state.charts.errorChart) {
-      state.charts.piChart.options.scales.x.title.text = t('xAxisLabel');
-      state.charts.errorChart.options.scales.x.title.text = t('xAxisLabel');
-      state.charts.piChart.update('none');
-      state.charts.errorChart.update('none');
-    }
+    updateCharts();
   }
 
   function parseAndClampInputs() {
     let changed = false;
-
-    let tVal = Number.parseFloat(dom.tInput.value);
-    if (!Number.isFinite(tVal)) tVal = defaults.t;
+    let tVal = Number.parseFloat(dom.tInput.value); if (!Number.isFinite(tVal)) tVal = defaults.t;
+    let lVal = Number.parseFloat(dom.lInput.value); if (!Number.isFinite(lVal)) lVal = defaults.l;
+    let nVal = Number.parseInt(dom.nInput.value, 10); if (!Number.isFinite(nVal)) nVal = defaults.N;
     const tClamped = clamp(tVal, 0.0001, Number.MAX_SAFE_INTEGER);
-    if (tVal !== tClamped) changed = true;
-
-    let lVal = Number.parseFloat(dom.lInput.value);
-    if (!Number.isFinite(lVal)) lVal = defaults.l;
     const lClamped = clamp(lVal, 0.0001, Number.MAX_SAFE_INTEGER);
-    if (lVal !== lClamped) changed = true;
-
-    let nVal = Number.parseInt(dom.nInput.value, 10);
-    if (!Number.isFinite(nVal)) nVal = defaults.N;
     const nClamped = clamp(nVal, 1, 1000000);
-    if (nVal !== nClamped) changed = true;
+    if (tVal !== tClamped || lVal !== lClamped || nVal !== nClamped) changed = true;
 
     let seed = null;
     if (dom.seedInput.value.trim() !== '') {
-      const parsedSeed = Number.parseInt(dom.seedInput.value, 10);
-      if (Number.isFinite(parsedSeed)) {
-        seed = parsedSeed | 0;
-      } else {
-        seed = defaults.seed;
-        changed = true;
-      }
+      const parsed = Number.parseInt(dom.seedInput.value, 10);
+      if (Number.isFinite(parsed)) seed = parsed | 0; else { seed = defaults.seed; changed = true; }
     }
 
-    const params = {
+    dom.tInput.value = String(tClamped);
+    dom.lInput.value = String(lClamped);
+    dom.nInput.value = String(nClamped);
+    dom.seedInput.value = seed === null ? '' : String(seed);
+    if (changed) setStatus(t('clamped'));
+
+    return {
       t: tClamped,
       l: lClamped,
       N: nClamped,
@@ -273,29 +267,13 @@
       useExtendedFormula: dom.extendedToggle.checked,
       lang: state.lang
     };
-
-    dom.tInput.value = String(params.t);
-    dom.lInput.value = String(params.l);
-    dom.nInput.value = String(params.N);
-    dom.seedInput.value = params.seed === null ? '' : String(params.seed);
-
-    if (changed) {
-      setStatus(t('clamped'));
-    }
-
-    return params;
   }
 
   function computeTheoryProbability(tVal, lVal, useExtendedFormula) {
-    if (lVal <= tVal) {
-      return clamp((2 * lVal) / (Math.PI * tVal), 0, 1);
-    }
-    if (!useExtendedFormula) {
-      return null;
-    }
+    if (lVal <= tVal) return clamp((2 * lVal) / (Math.PI * tVal), 0, 1);
+    if (!useExtendedFormula) return null;
     const r = lVal / tVal;
-    const p = (2 / Math.PI) * (r - Math.sqrt(r * r - 1) + Math.acos(tVal / lVal));
-    return clamp(p, 0, 1);
+    return clamp((2 / Math.PI) * (r - Math.sqrt(r * r - 1) + Math.acos(tVal / lVal)), 0, 1);
   }
 
   function mulberry32(seed) {
@@ -309,141 +287,147 @@
     };
   }
 
-  function makeRng(seed) {
-    return seed === null ? Math.random : mulberry32(seed);
-  }
+  const makeRng = (seed) => (seed === null ? Math.random : mulberry32(seed));
 
   function simulateThrow(tVal, lVal, rand) {
     const theta = rand() * (Math.PI / 2);
     const x = rand() * (tVal / 2);
-    const intersect = x <= (lVal / 2) * Math.sin(theta);
-    return { theta, x, intersect };
+    return { theta, x, intersect: x <= (lVal / 2) * Math.sin(theta) };
   }
 
   function computeMetrics() {
     const { N_done, K } = state;
     const { t: tVal, l: lVal, useExtendedFormula } = state.params;
-
     const pTheory = computeTheoryProbability(tVal, lVal, useExtendedFormula);
     const pHat = N_done > 0 ? K / N_done : null;
-
-    let piHat = null;
-    if (lVal <= tVal && K > 0 && N_done > 0) {
-      piHat = (2 * lVal * N_done) / (tVal * K);
-    }
-
+    const piHat = (lVal <= tVal && K > 0 && N_done > 0) ? (2 * lVal * N_done) / (tVal * K) : null;
     const absError = piHat === null ? null : Math.abs(piHat - Math.PI);
     const relError = absError === null ? null : absError / Math.PI;
-    const probAbsError = pHat !== null && pTheory !== null ? Math.abs(pHat - pTheory) : null;
+    const pDiff = (pHat !== null && pTheory !== null) ? (pHat - pTheory) : null;
+    const probAbsError = pDiff === null ? null : Math.abs(pDiff);
 
-    let ciLow = null;
-    let ciHigh = null;
-    let ciReady = false;
+    let ciLow = null; let ciHigh = null; let ciReady = false;
     if (pHat !== null && N_done >= 30) {
       const margin = 1.96 * Math.sqrt((pHat * (1 - pHat)) / N_done);
-      ciLow = clamp(pHat - margin, 0, 1);
-      ciHigh = clamp(pHat + margin, 0, 1);
-      ciReady = true;
+      ciLow = clamp(pHat - margin, 0, 1); ciHigh = clamp(pHat + margin, 0, 1); ciReady = true;
     }
 
-    return { pTheory, pHat, piHat, absError, relError, probAbsError, ciLow, ciHigh, ciReady };
+    let piCiLow = null; let piCiHigh = null; let piCiWidth = null;
+    if (lVal <= tVal && pHat !== null && pHat > 0 && pHat < 1 && N_done >= 30 && piHat !== null) {
+      const c = (2 * lVal) / tVal;
+      const sePi = (c / (pHat * pHat)) * Math.sqrt((pHat * (1 - pHat)) / N_done);
+      const m = 1.96 * sePi;
+      if (Number.isFinite(m)) { piCiLow = piHat - m; piCiHigh = piHat + m; piCiWidth = 2 * m; }
+    }
+
+    let zScore = null; let pValue = null; let zReject = null;
+    if (pTheory !== null && pHat !== null && N_done >= 30 && pTheory > 0 && pTheory < 1) {
+      const se0 = Math.sqrt((pTheory * (1 - pTheory)) / N_done);
+      if (se0 > 0) { zScore = (pHat - pTheory) / se0; pValue = 2 * (1 - normalCdf(Math.abs(zScore))); zReject = pValue < 0.05; }
+    }
+
+    return { pTheory, pHat, piHat, absError, relError, pDiff, probAbsError, ciLow, ciHigh, ciReady, piCiLow, piCiHigh, piCiWidth, zScore, pValue, zReject };
   }
 
-  function pushChartPoint(nVal, yMain, yError) {
-    if (yMain !== null) {
-      state.series.pi.push({ x: nVal, y: yMain });
-    }
-    if (yError !== null) {
-      state.series.absErr.push({ x: nVal, y: yError });
-    }
+  function estimateSlope(points) {
+    if (points.length < 2) return null;
+    let sx = 0; let sy = 0; let sxy = 0; let sxx = 0;
+    for (let i = 0; i < points.length; i += 1) { sx += points[i].x; sy += points[i].y; sxy += points[i].x * points[i].y; sxx += points[i].x * points[i].x; }
+    const n = points.length; const den = n * sxx - sx * sx;
+    return den === 0 ? null : (n * sxy - sx * sy) / den;
   }
 
   function updateChartTitles() {
     const longNeedle = state.params.l > state.params.t;
     const noIntersectionsYet = !longNeedle && state.K === 0;
-    const useProbView = longNeedle || noIntersectionsYet;
-    dom.piChartTitle.textContent = useProbView ? t('piChartTitleProb') : t('piChartTitle');
-    dom.errorChartTitle.textContent = useProbView ? t('errorChartTitleProb') : t('errorChartTitle');
-    if (state.charts.piChart && state.charts.errorChart) {
-      state.charts.piChart.data.datasets[0].label = useProbView ? 'P_hat' : 'pi_hat';
-      state.charts.errorChart.data.datasets[0].label = useProbView ? '|P_hat - P_theory|' : '|pi_hat - pi|';
-      state.charts.piChart.update('none');
-      state.charts.errorChart.update('none');
+    const probView = longNeedle || noIntersectionsYet;
+    dom.piChartTitle.textContent = probView ? t('piChartTitleProb') : t('piChartTitle');
+    dom.errorChartTitle.textContent = probView ? t('errorChartTitleProb') : t('errorChartTitle');
+    if (state.charts.piChart) {
+      state.charts.piChart.data.datasets[0].label = probView ? 'P_hat' : 'pi_hat';
+      state.charts.errorChart.data.datasets[0].label = probView ? '|P_hat - P_theory|' : '|pi_hat - pi|';
     }
+  }
+
+  function pushSeriesPoint(nVal, m) {
+    const longNeedle = state.params.l > state.params.t;
+    const yMain = longNeedle ? m.pHat : (m.piHat ?? m.pHat);
+    const yErr = longNeedle ? m.probAbsError : (m.absError ?? m.probAbsError);
+    if (yMain !== null) state.series.pi.push({ x: nVal, y: yMain });
+    if (yErr !== null) state.series.absErr.push({ x: nVal, y: yErr });
+    if (m.piCiWidth !== null) state.series.piCiWidth.push({ x: nVal, y: m.piCiWidth });
+    if (m.pDiff !== null) state.series.pDiff.push({ x: nVal, y: m.pDiff });
+    if (yErr !== null && yErr > 0 && nVal > 1) state.series.conv.push({ x: Math.log10(nVal), y: Math.log10(yErr) });
   }
 
   function updateCharts() {
+    if (!state.charts.piChart) return;
+    updateChartTitles();
     state.charts.piChart.data.datasets[0].data = state.series.pi;
     state.charts.errorChart.data.datasets[0].data = state.series.absErr;
+    state.charts.ciWidthChart.data.datasets[0].data = state.series.piCiWidth;
+    state.charts.pDiffChart.data.datasets[0].data = state.series.pDiff;
+    state.charts.convChart.data.datasets[0].data = state.series.conv;
     state.charts.piChart.update('none');
     state.charts.errorChart.update('none');
+    state.charts.ciWidthChart.update('none');
+    state.charts.pDiffChart.update('none');
+    state.charts.convChart.update('none');
+    const slope = estimateSlope(state.series.conv);
+    dom.slopeText.textContent = `${t('slopeText')}${slope === null ? '-' : slope.toFixed(3)}`;
   }
 
   function refreshOutputs() {
-    const metrics = computeMetrics();
-    updateChartTitles();
-
-    dom.outPTheory.textContent = metrics.pTheory === null ? '-' : fmtNum(metrics.pTheory, 6);
+    const m = computeMetrics();
+    dom.outPTheory.textContent = m.pTheory === null ? '-' : fmtNum(m.pTheory, 6);
     dom.outK.textContent = String(state.K);
-    dom.outPHat.textContent = metrics.pHat === null ? '-' : fmtNum(metrics.pHat, 6);
+    dom.outPHat.textContent = m.pHat === null ? '-' : fmtNum(m.pHat, 6);
 
     if (state.params.l > state.params.t) {
-      dom.outPiHat.textContent = t('piOnlyForShort');
-      dom.outAbsErr.textContent = '-';
-      dom.outRelErr.textContent = '-';
+      dom.outPiHat.textContent = t('piOnlyForShort'); dom.outAbsErr.textContent = '-'; dom.outRelErr.textContent = '-';
     } else if (state.K === 0) {
-      dom.outPiHat.textContent = t('notEnoughIntersections');
-      dom.outAbsErr.textContent = '-';
-      dom.outRelErr.textContent = '-';
+      dom.outPiHat.textContent = t('notEnoughIntersections'); dom.outAbsErr.textContent = '-'; dom.outRelErr.textContent = '-';
     } else {
-      dom.outPiHat.textContent = metrics.piHat === null ? '-' : fmtNum(metrics.piHat, 6);
-      dom.outAbsErr.textContent = metrics.absError === null ? '-' : fmtNum(metrics.absError, 6);
-      dom.outRelErr.textContent = metrics.relError === null ? '-' : fmtNum(metrics.relError, 6);
+      dom.outPiHat.textContent = m.piHat === null ? '-' : fmtNum(m.piHat, 6);
+      dom.outAbsErr.textContent = m.absError === null ? '-' : fmtNum(m.absError, 6);
+      dom.outRelErr.textContent = m.relError === null ? '-' : fmtNum(m.relError, 6);
     }
 
-    dom.outCILow.textContent = metrics.ciLow === null ? '-' : fmtNum(metrics.ciLow, 6);
-    dom.outCIHigh.textContent = metrics.ciHigh === null ? '-' : fmtNum(metrics.ciHigh, 6);
-    dom.ciNote.textContent = metrics.ciReady ? t('ciShown') : t('ciNeedN');
-    dom.progress.textContent = `${t('progressLabel')}: ${state.N_done} / ${state.params.N || 0}`;
+    dom.outCILow.textContent = m.ciLow === null ? '-' : fmtNum(m.ciLow, 6);
+    dom.outCIHigh.textContent = m.ciHigh === null ? '-' : fmtNum(m.ciHigh, 6);
+    dom.ciNote.textContent = m.ciReady ? t('ciShown') : t('ciNeedN');
+    dom.outPiCILow.textContent = m.piCiLow === null ? '-' : fmtNum(m.piCiLow, 6);
+    dom.outPiCIHigh.textContent = m.piCiHigh === null ? '-' : fmtNum(m.piCiHigh, 6);
+    dom.outPiCIWidth.textContent = m.piCiWidth === null ? '-' : fmtNum(m.piCiWidth, 6);
 
-    if (metrics.pTheory === null && state.params.l > state.params.t && !state.params.useExtendedFormula) {
-      setStatus(t('extendedDisabled'));
-    }
+    if (m.zScore === null || m.pValue === null) dom.outZTest.textContent = '-';
+    else dom.outZTest.textContent = `z=${fmtNum(m.zScore, 3)}, p=${fmtNum(m.pValue, 4)}, ${m.zReject ? t('zReject') : t('zKeep')}`;
 
+    dom.devPHat.textContent = m.pDiff === null ? '-' : fmtNum(m.pDiff, 6);
+    dom.devPiAbs.textContent = m.absError === null ? '-' : fmtNum(m.absError, 6);
+    dom.devPiRel.textContent = m.relError === null ? '-' : fmtNum(m.relError, 6);
+    dom.progress.textContent = `${t('progressLabel')}: ${state.N_done} / ${state.params.N}`;
     dom.pauseBtn.textContent = state.paused ? t('resumeBtn') : t('pauseBtn');
   }
 
   function resizeCanvasForDpr(canvas) {
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     const rect = canvas.getBoundingClientRect();
-    const width = Math.max(1, Math.floor(rect.width * dpr));
-    const height = Math.max(1, Math.floor(rect.height * dpr));
-    if (canvas.width !== width || canvas.height !== height) {
-      canvas.width = width;
-      canvas.height = height;
-    }
+    const w = Math.max(1, Math.floor(rect.width * dpr));
+    const h = Math.max(1, Math.floor(rect.height * dpr));
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
   }
 
-  function buildNeedleRecord(throwData, rand) {
-    return {
-      ...throwData,
-      sideRand: rand(),
-      cxRand: rand()
-    };
-  }
+  function buildNeedleRecord(throwData, rand) { return { ...throwData, sideRand: rand(), cxRand: rand() }; }
 
-  function buildNeedleEndpoints(throwData, params, width, height) {
-    const centerYLine = height / 2;
-    const spacingPx = Math.max(38, height / 4.4);
-    const scale = spacingPx / params.t;
+  function buildNeedleEndpoints(throwData, params, w, h) {
+    const spacing = Math.max(38, h / 4.4);
+    const scale = spacing / params.t;
     const sign = throwData.sideRand < 0.5 ? -1 : 1;
-    const xDistPx = throwData.x * scale;
-    const cy = centerYLine + sign * xDistPx;
-    const margin = 28;
-    const cx = margin + throwData.cxRand * Math.max(1, width - 2 * margin);
+    const cy = h / 2 + sign * throwData.x * scale;
+    const cx = 28 + throwData.cxRand * Math.max(1, w - 56);
     const dx = (params.l / 2) * Math.cos(throwData.theta) * scale;
     const dy = (params.l / 2) * Math.sin(throwData.theta) * scale;
-
     return { x1: cx - dx, y1: cy - dy, x2: cx + dx, y2: cy + dy };
   }
 
@@ -451,340 +435,185 @@
     const canvas = dom.throwCanvas;
     resizeCanvasForDpr(canvas);
     const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-
-    ctx.clearRect(0, 0, width, height);
-
+    const w = canvas.width; const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
     const styles = getComputedStyle(document.documentElement);
     const border = styles.getPropertyValue('--border').trim() || '#d9e2f0';
     const text = styles.getPropertyValue('--text').trim() || '#152238';
-
-    ctx.fillStyle = styles.getPropertyValue('--surface-alt').trim() || '#f0f4fa';
-    ctx.fillRect(0, 0, width, height);
-
-    const centerY = height / 2;
-    const spacingPx = Math.max(38, height / 4.4);
-    ctx.strokeStyle = border;
-    ctx.lineWidth = 1.25;
-
+    const surface = styles.getPropertyValue('--surface-alt').trim() || '#f0f4fa';
+    ctx.fillStyle = surface; ctx.fillRect(0, 0, w, h);
+    const spacing = Math.max(38, h / 4.4);
+    ctx.strokeStyle = border; ctx.lineWidth = 1.2;
     for (let i = -2; i <= 2; i += 1) {
-      const y = centerY + i * spacingPx;
-      if (y < 0 || y > height) continue;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
+      const y = h / 2 + i * spacing;
+      if (y < 0 || y > h) continue;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
     }
 
     let throwData = null;
-    if (state.running && state.lastThrow) {
-      throwData = state.lastThrow;
-    } else if (state.params.showSinglePreview && !state.running) {
+    if (state.running && state.lastThrow) throwData = state.lastThrow;
+    else if (state.params.showSinglePreview && !state.running) {
       const previewRng = makeRng(state.params.seed === null ? null : state.params.seed + 777);
       throwData = buildNeedleRecord(simulateThrow(state.params.t, state.params.l, previewRng), previewRng);
     }
 
     if (!throwData) {
-      ctx.fillStyle = text;
-      ctx.font = `${Math.max(14, Math.floor(height * 0.06))}px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
-      ctx.fillText(t('previewHint'), 16, 28);
-      return;
+      ctx.fillStyle = text; ctx.font = `${Math.max(14, Math.floor(h * 0.06))}px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
+      ctx.fillText(t('previewHint'), 16, 28); return;
     }
 
     if (state.keepAllNeedles && state.needleHistory.length > 0) {
-      ctx.lineWidth = 1.2;
+      ctx.lineWidth = 1.15;
       for (let i = 0; i < state.needleHistory.length; i += 1) {
-        const needle = state.needleHistory[i];
-        const nEp = buildNeedleEndpoints(needle, state.params, width, height);
-        ctx.strokeStyle = needle.intersect ? 'rgba(230,80,80,0.45)' : 'rgba(42,109,244,0.45)';
-        ctx.beginPath();
-        ctx.moveTo(nEp.x1, nEp.y1);
-        ctx.lineTo(nEp.x2, nEp.y2);
-        ctx.stroke();
+        const n = state.needleHistory[i]; const ep0 = buildNeedleEndpoints(n, state.params, w, h);
+        ctx.strokeStyle = n.intersect ? 'rgba(230,80,80,0.32)' : 'rgba(42,109,244,0.32)';
+        ctx.beginPath(); ctx.moveTo(ep0.x1, ep0.y1); ctx.lineTo(ep0.x2, ep0.y2); ctx.stroke();
       }
     }
 
-    const ep = buildNeedleEndpoints(throwData, state.params, width, height);
+    const ep = buildNeedleEndpoints(throwData, state.params, w, h);
     ctx.strokeStyle = throwData.intersect ? '#e65050' : '#2a6df4';
-    ctx.lineWidth = 2.6;
-    ctx.beginPath();
-    ctx.moveTo(ep.x1, ep.y1);
-    ctx.lineTo(ep.x2, ep.y2);
-    ctx.stroke();
-
-    ctx.fillStyle = text;
-    ctx.font = `${Math.max(13, Math.floor(height * 0.05))}px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
-    ctx.fillText(throwData.intersect ? t('lastThrowHit') : t('lastThrowMiss'), 16, height - 14);
+    ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(ep.x1, ep.y1); ctx.lineTo(ep.x2, ep.y2); ctx.stroke();
+    ctx.fillStyle = text; ctx.font = `${Math.max(13, Math.floor(h * 0.05))}px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif`;
+    ctx.fillText(throwData.intersect ? t('lastThrowHit') : t('lastThrowMiss'), 16, h - 14);
   }
 
-  function setRunButtons() {
-    dom.startBtn.disabled = state.running;
-    dom.pauseBtn.disabled = !state.running;
-    dom.pauseBtn.textContent = state.paused ? t('resumeBtn') : t('pauseBtn');
-  }
-
-  function updateKeepNeedlesButton() {
-    dom.keepNeedlesBtn.textContent = state.keepAllNeedles ? t('keepNeedlesOn') : t('keepNeedlesOff');
-  }
+  function setRunButtons() { dom.startBtn.disabled = state.running; dom.pauseBtn.disabled = !state.running; dom.pauseBtn.textContent = state.paused ? t('resumeBtn') : t('pauseBtn'); }
+  function syncKeepNeedlesSwitch() { dom.keepNeedlesSwitch.checked = state.keepAllNeedles; }
+  function updateStepModeButton() { dom.stepModeBtn.textContent = state.stepMode ? t('stepModeOn') : t('stepModeOff'); if (!state.running) dom.stepExplain.textContent = state.stepMode ? t('stepIdle') : ''; }
 
   function sampleChartsIfNeeded(force = false) {
-    const metrics = computeMetrics();
-    const longNeedle = state.params.l > state.params.t;
-    let yMain = longNeedle ? metrics.pHat : (metrics.piHat ?? metrics.pHat);
-    const yErr = longNeedle
-      ? metrics.probAbsError
-      : (metrics.absError ?? metrics.probAbsError);
-    if (!longNeedle && metrics.piHat === null && yMain === 0) {
-      // Keep a visible line even before first intersection.
-      yMain = 1e-6;
-    }
-    if (yMain === null) return;
-
     if (force || state.N_done % state.chartStep === 0 || state.N_done === state.params.N) {
-      pushChartPoint(state.N_done, yMain, yErr);
+      pushSeriesPoint(state.N_done, computeMetrics());
       updateCharts();
     }
   }
 
   function configureChartDensity() {
     const n = state.params.N;
-    if (n <= 1000) {
-      state.chartStep = 1;
-    } else if (n <= 10000) {
-      state.chartStep = 5;
-    } else if (n <= 100000) {
-      state.chartStep = 20;
-    } else {
-      state.chartStep = 50;
-    }
+    if (n <= 1000) state.chartStep = 1;
+    else if (n <= 10000) state.chartStep = 5;
+    else if (n <= 100000) state.chartStep = 20;
+    else state.chartStep = 50;
   }
 
   function stopSimulation() {
-    if (state.rafId !== null) {
-      cancelAnimationFrame(state.rafId);
-      state.rafId = null;
-    }
-    state.running = false;
-    state.paused = false;
-    setRunButtons();
+    if (state.rafId !== null) { cancelAnimationFrame(state.rafId); state.rafId = null; }
+    state.running = false; state.paused = false; setRunButtons();
   }
 
   function runAnimated() {
-    state.running = true;
-    state.paused = false;
-    setRunButtons();
-    setStatus(t('runAnimated'));
-
-    const tick = () => {
+    state.running = true; state.paused = false; state.lastStepTs = 0;
+    setRunButtons(); setStatus(t('runAnimated'));
+    const tick = (ts) => {
       if (!state.running || state.paused) return;
-
       const remaining = state.params.N - state.N_done;
       if (remaining <= 0) {
-        sampleChartsIfNeeded(true);
-        refreshOutputs();
-        stopSimulation();
-        drawVisualization();
-        setStatus(t('doneAnimated'));
-        return;
+        sampleChartsIfNeeded(true); refreshOutputs(); stopSimulation(); drawVisualization(); setStatus(t('doneAnimated')); dom.stepExplain.textContent = ''; return;
       }
 
-      let targetChunk = 130;
-      if (state.params.N <= 300) targetChunk = 1;
-      else if (state.params.N <= 2000) targetChunk = 5;
-      const chunk = Math.min(remaining, targetChunk);
+      let chunk = 130;
+      if (state.params.N <= 300) chunk = 1; else if (state.params.N <= 2000) chunk = 5;
+      if (state.stepMode) {
+        if (state.lastStepTs && ts - state.lastStepTs < state.stepDelayMs) { state.rafId = requestAnimationFrame(tick); return; }
+        state.lastStepTs = ts; chunk = 1;
+      }
+
+      chunk = Math.min(remaining, chunk);
       for (let i = 0; i < chunk; i += 1) {
-        const throwData = buildNeedleRecord(simulateThrow(state.params.t, state.params.l, state.rng), state.rng);
-        state.N_done += 1;
-        if (throwData.intersect) state.K += 1;
-        state.lastThrow = throwData;
-        state.needleHistory.push(throwData);
+        const th = buildNeedleRecord(simulateThrow(state.params.t, state.params.l, state.rng), state.rng);
+        state.N_done += 1; if (th.intersect) state.K += 1; state.lastThrow = th; state.needleHistory.push(th);
+        if (state.stepMode) dom.stepExplain.textContent = `${t('stepThrow')} ${state.N_done}: theta=${th.theta.toFixed(3)}, x=${th.x.toFixed(3)}, intersect=${th.intersect}`;
       }
-
-      sampleChartsIfNeeded(false);
-      refreshOutputs();
-      drawVisualization();
-      state.rafId = requestAnimationFrame(tick);
+      sampleChartsIfNeeded(false); refreshOutputs(); drawVisualization(); state.rafId = requestAnimationFrame(tick);
     };
-
     state.rafId = requestAnimationFrame(tick);
   }
 
   function resetForNewRun() {
     stopSimulation();
-    state.N_done = 0;
-    state.K = 0;
-    state.lastThrow = null;
-    state.needleHistory = [];
-    state.series.pi = [];
-    state.series.absErr = [];
-    updateCharts();
-    refreshOutputs();
+    state.N_done = 0; state.K = 0; state.lastThrow = null; state.lastStepTs = 0; state.needleHistory = [];
+    state.series.pi = []; state.series.absErr = []; state.series.piCiWidth = []; state.series.pDiff = []; state.series.conv = [];
+    updateCharts(); refreshOutputs();
+  }
+
+  function makeLineChart(canvasId, color, label) {
+    return new Chart(document.getElementById(canvasId), {
+      type: 'line',
+      data: { datasets: [{ label, data: [], borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: (ctx) => (state.params.N <= 1000 ? 2 : 0), pointHoverRadius: 4 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+        scales: { x: { type: 'linear', title: { display: true, text: t('xAxisLabel') } } },
+        plugins: { legend: { display: false } }
+      }
+    });
   }
 
   function initCharts() {
-    const common = {
+    state.charts.piChart = makeLineChart('piChart', '#2a6df4', 'pi_hat');
+    state.charts.errorChart = makeLineChart('errorChart', '#e65050', 'abs_error');
+    state.charts.ciWidthChart = makeLineChart('ciWidthChart', '#0f9d58', 'pi_hat_CI_width');
+    state.charts.pDiffChart = makeLineChart('pDiffChart', '#f39c12', 'P_hat_minus_P_theory');
+    state.charts.convChart = new Chart(document.getElementById('convChart'), {
       type: 'line',
+      data: { datasets: [{ label: 'log-log error', data: [], borderColor: '#6c5ce7', backgroundColor: '#6c5ce7', borderWidth: 2, pointRadius: (ctx) => (state.params.N <= 1000 ? 2 : 0), pointHoverRadius: 4 }] },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
-        parsing: false,
-        scales: {
-          x: {
-            type: 'linear',
-            title: { display: true, text: t('xAxisLabel') }
-          }
-        },
-        plugins: {
-          legend: { display: false }
-        },
-        elements: {
-          point: {
-            radius: (ctx) => (state.params.N <= 1000 ? 2 : 0),
-            hoverRadius: 4
-          },
-          line: { borderWidth: 2 }
-        }
-      }
-    };
-
-    state.charts.piChart = new Chart(document.getElementById('piChart'), {
-      ...common,
-      data: {
-        datasets: [{
-          label: 'pi_hat',
-          data: [],
-          borderColor: '#2a6df4',
-          backgroundColor: '#2a6df4'
-        }]
+        responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+        scales: { x: { type: 'linear', title: { display: true, text: 'log10(N_done)' } }, y: { type: 'linear', title: { display: true, text: 'log10(error)' } } },
+        plugins: { legend: { display: false } }
       }
     });
-
-    state.charts.errorChart = new Chart(document.getElementById('errorChart'), {
-      ...common,
-      data: {
-        datasets: [{
-          label: 'abs_error',
-          data: [],
-          borderColor: '#e65050',
-          backgroundColor: '#e65050'
-        }]
-      }
-    });
-  }
-
-  function getExportPayload() {
-    const m = computeMetrics();
-    return {
-      timestamp: new Date().toISOString(),
-      t: state.params.t,
-      l: state.params.l,
-      N: state.params.N,
-      seed: state.params.seed,
-      N_done: state.N_done,
-      K: state.K,
-      P_theory: m.pTheory,
-      P_hat: m.pHat,
-      pi_hat: m.piHat,
-      abs_error: m.absError,
-      rel_error: m.relError
-    };
   }
 
   function prefillFromQuery() {
     const q = new URLSearchParams(window.location.search);
-
     if (q.has('t')) dom.tInput.value = q.get('t');
     if (q.has('l')) dom.lInput.value = q.get('l');
     if (q.has('N')) dom.nInput.value = q.get('N');
     if (q.has('seed')) dom.seedInput.value = q.get('seed');
   }
 
-  function onStart() {
-    resetForNewRun();
-    state.params = parseAndClampInputs();
-    configureChartDensity();
-    state.rng = makeRng(state.params.seed);
-    setRunButtons();
-    refreshOutputs();
-    drawVisualization();
-
-    runAnimated();
-  }
-
+  function onStart() { resetForNewRun(); state.params = parseAndClampInputs(); configureChartDensity(); state.rng = makeRng(state.params.seed); setRunButtons(); refreshOutputs(); drawVisualization(); runAnimated(); }
   function onPauseResume() {
     if (!state.running) return;
-
-    state.paused = !state.paused;
-    setRunButtons();
-
-    if (state.paused) {
-      if (state.rafId !== null) cancelAnimationFrame(state.rafId);
-      state.rafId = null;
-      setStatus(t('paused'));
-    } else {
-      setStatus(t('resumed'));
-      runAnimated();
-    }
+    state.paused = !state.paused; setRunButtons();
+    if (state.paused) { if (state.rafId !== null) cancelAnimationFrame(state.rafId); state.rafId = null; setStatus(t('paused')); }
+    else { setStatus(t('resumed')); runAnimated(); }
   }
-
-  function onReset() {
-    resetForNewRun();
-    state.params = parseAndClampInputs();
-    configureChartDensity();
-    state.rng = makeRng(state.params.seed);
-    drawVisualization();
-    setStatus(t('resetDone'));
-  }
-
+  function onReset() { resetForNewRun(); state.params = parseAndClampInputs(); configureChartDensity(); state.rng = makeRng(state.params.seed); drawVisualization(); setStatus(t('resetDone')); }
   function onToggleNeedleHistory() {
-    state.keepAllNeedles = !state.keepAllNeedles;
-    updateKeepNeedlesButton();
+    state.keepAllNeedles = dom.keepNeedlesSwitch.checked;
     drawVisualization();
   }
+  function onToggleStepMode() { state.stepMode = !state.stepMode; updateStepModeButton(); }
 
   function bindEvents() {
     dom.startBtn.addEventListener('click', onStart);
     dom.pauseBtn.addEventListener('click', onPauseResume);
     dom.resetBtn.addEventListener('click', onReset);
-    dom.keepNeedlesBtn.addEventListener('click', onToggleNeedleHistory);
-
-    dom.langSwitch.addEventListener('click', () => {
-      state.lang = state.lang === 'cs' ? 'en' : 'cs';
-      localStorage.setItem('lang', state.lang);
-      applyLanguage();
-      setStatus(t('ready'));
-    });
-
+    dom.keepNeedlesSwitch.addEventListener('change', onToggleNeedleHistory);
+    dom.stepModeBtn.addEventListener('click', onToggleStepMode);
+    dom.langSwitch.addEventListener('click', () => { state.lang = state.lang === 'cs' ? 'en' : 'cs'; localStorage.setItem('lang', state.lang); applyLanguage(); setStatus(t('ready')); });
     [dom.tInput, dom.lInput, dom.nInput, dom.seedInput, dom.previewToggle, dom.extendedToggle].forEach((el) => {
-      el.addEventListener('change', () => {
-        state.params = parseAndClampInputs();
-        refreshOutputs();
-        drawVisualization();
-      });
+      el.addEventListener('change', () => { state.params = parseAndClampInputs(); configureChartDensity(); refreshOutputs(); drawVisualization(); });
     });
-
     window.addEventListener('resize', drawVisualization);
   }
 
-  function initLanguage() {
-    const saved = localStorage.getItem('lang');
-    state.lang = saved === 'en' ? 'en' : 'cs';
-    applyLanguage();
-  }
+  function initLanguage() { const saved = localStorage.getItem('lang'); state.lang = saved === 'en' ? 'en' : 'cs'; applyLanguage(); }
 
   function init() {
     prefillFromQuery();
-    initLanguage();
     state.params = parseAndClampInputs();
     configureChartDensity();
     state.rng = makeRng(state.params.seed);
     initCharts();
+    initLanguage();
     bindEvents();
     setRunButtons();
     refreshOutputs();
     drawVisualization();
+    updateStepModeButton();
     setStatus(t('ready'));
   }
 

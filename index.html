@@ -11,8 +11,8 @@
 <body>
   <header class="app-header container card fade-in">
     <div>
-      <h1 data-i18n="appTitle">Buffonův simulátor jehly</h1>
-      <p class="subtitle" data-i18n="appSubtitle">Interaktivní kalkulačka a Monte Carlo simulace</p>
+      <h1 data-i18n="appTitle">Buffonuv simulator jehly</h1>
+      <p class="subtitle" data-i18n="appSubtitle">Interaktivni kalkulacka a Monte Carlo simulace</p>
     </div>
     <div class="field inline-field">
       <span class="switch-label" data-i18n="languageLabel">Jazyk</span>
@@ -29,88 +29,136 @@
       <form id="controlsForm" novalidate>
         <div class="field-grid">
           <div class="field">
-            <label for="tInput" data-i18n="lineDistanceLabel">Vzdálenost přímek t</label>
+            <label for="tInput" data-i18n="lineDistanceLabel">Vzdalenost primek t</label>
             <input id="tInput" name="t" type="number" min="0.0001" step="any" value="10" inputmode="decimal">
           </div>
           <div class="field">
-            <label for="lInput" data-i18n="needleLengthLabel">Délka jehly l</label>
+            <label for="lInput" data-i18n="needleLengthLabel">Delka jehly l</label>
             <input id="lInput" name="l" type="number" min="0.0001" step="any" value="7" inputmode="decimal">
           </div>
           <div class="field">
-            <label for="nInput" data-i18n="throwsLabel">Počet hodů N</label>
+            <label for="nInput" data-i18n="throwsLabel">Pocet hodu N</label>
             <input id="nInput" name="N" type="number" min="1" max="1000000" step="1" value="500000" inputmode="numeric">
           </div>
           <div class="field">
-            <label for="seedInput" data-i18n="seedLabel">RNG seed (volitelné)</label>
-            <input id="seedInput" name="seed" type="number" step="1" value="12345" inputmode="numeric" placeholder="prázdné = Math.random">
+            <label for="seedInput" data-i18n="seedLabel">RNG seed (volitelne)</label>
+            <input id="seedInput" name="seed" type="number" step="1" value="12345" inputmode="numeric" placeholder="prazdne = Math.random">
           </div>
         </div>
 
         <div class="toggle-row">
           <input id="previewToggle" type="checkbox" checked>
-          <label for="previewToggle" data-i18n="previewToggleLabel">Zobrazit náhled jednoho hodu</label>
+          <label for="previewToggle" data-i18n="previewToggleLabel">Zobrazit nahled jednoho hodu</label>
         </div>
 
         <div class="toggle-row">
           <input id="extendedToggle" type="checkbox">
-          <label for="extendedToggle" data-i18n="extendedToggleLabel">Použít rozšířený vzorec pro l &gt; t</label>
+          <label for="extendedToggle" data-i18n="extendedToggleLabel">Pouzit rozsireny vzorec pro l &gt; t</label>
         </div>
-        <p class="input-note" data-i18n="extendedNote">Rozšířený vzorec se používá jen pro l &gt; t.</p>
+        <p class="input-note" data-i18n="extendedNote">Rozsireny vzorec se pouziva jen pro l &gt; t.</p>
 
         <div class="button-row">
           <button id="startBtn" class="btn" type="button" data-i18n="startBtn">Start</button>
           <button id="pauseBtn" class="btn" type="button" disabled data-i18n="pauseBtn">Pauza</button>
           <button id="resetBtn" class="btn ghost" type="button" data-i18n="resetBtn">Reset</button>
-          <button id="keepNeedlesBtn" class="btn ghost" type="button" data-i18n="keepNeedlesOff">Uchovat vsechny jehly: Vypnuto</button>
+          <button id="stepModeBtn" class="btn ghost" type="button">tezim step by step: OFF</button>
         </div>
       </form>
 
-      <p id="status" class="status" aria-live="polite">Připraveno.</p>
+      <p id="stepExplain" class="note">Step mode explanation appears here.</p>
+      <p id="status" class="status" aria-live="polite">Pripraveno.</p>
     </section>
 
     <section class="panel outputs" aria-labelledby="outputs-title">
-      <h2 id="outputs-title" data-i18n="outputsTitle">Výstupy</h2>
+      <h2 id="outputs-title" data-i18n="outputsTitle">Vystupy</h2>
       <div class="cards-grid">
         <article class="metric-card card fade-in"><h3>P_theory</h3><p id="outPTheory">-</p></article>
-        <article class="metric-card card fade-in"><h3 data-i18n="intersectionsLabel">Průsečíky K</h3><p id="outK">0</p></article>
+        <article class="metric-card card fade-in"><h3 data-i18n="intersectionsLabel">Pruseciky K</h3><p id="outK">0</p></article>
         <article class="metric-card card fade-in"><h3>P_hat</h3><p id="outPHat">-</p></article>
         <article class="metric-card card fade-in"><h3>pi_hat</h3><p id="outPiHat">-</p></article>
-        <article class="metric-card card fade-in"><h3 data-i18n="absErrorLabel">Absolutní chyba</h3><p id="outAbsErr">-</p></article>
-        <article class="metric-card card fade-in"><h3 data-i18n="relErrorLabel">Relativní chyba</h3><p id="outRelErr">-</p></article>
-        <article class="metric-card card fade-in"><h3 data-i18n="ciLowLabel">CI dolní (95%)</h3><p id="outCILow">-</p></article>
-        <article class="metric-card card fade-in"><h3 data-i18n="ciHighLabel">CI horní (95%)</h3><p id="outCIHigh">-</p></article>
+        <article class="metric-card card fade-in"><h3 data-i18n="absErrorLabel">Absolutni chyba</h3><p id="outAbsErr">-</p></article>
+        <article class="metric-card card fade-in"><h3 data-i18n="relErrorLabel">Relativni chyba</h3><p id="outRelErr">-</p></article>
+        <article class="metric-card card fade-in"><h3 data-i18n="ciLowLabel">CI dolni (95%)</h3><p id="outCILow">-</p></article>
+        <article class="metric-card card fade-in"><h3 data-i18n="ciHighLabel">CI horni (95%)</h3><p id="outCIHigh">-</p></article>
+        <article class="metric-card card fade-in"><h3>pi_hat CI low</h3><p id="outPiCILow">-</p></article>
+        <article class="metric-card card fade-in"><h3>pi_hat CI high</h3><p id="outPiCIHigh">-</p></article>
+        <article class="metric-card card fade-in"><h3>pi_hat CI width</h3><p id="outPiCIWidth">-</p></article>
+        <article class="metric-card card fade-in"><h3>z-test (P_hat vs P_theory)</h3><p id="outZTest">-</p></article>
       </div>
-      <p id="ciNote" class="note">Pro normální aproximaci CI je potřeba N_done &gt;= 30.</p>
+      <p id="ciNote" class="note">Pro normalni aproximaci CI je potreba N_done &gt;= 30.</p>
+      <p id="piCiNote" class="note">pi_hat CI requires l &lt;= t, K &gt; 0, N_done &gt;= 30.</p>
+      <p id="zTestNote" class="note">z-test uses normal approximation and alpha = 0.05.</p>
       <p id="progress" class="progress">Postup: 0 / 0</p>
 
       <div class="card chart-card fade-in">
-        <h3 id="piChartTitle" data-i18n="piChartTitle">pi_hat podle počtu hodů</h3>
+        <h3 id="piChartTitle" data-i18n="piChartTitle">pi_hat podle poctu hodu</h3>
         <div class="chart-wrap"><canvas id="piChart"></canvas></div>
       </div>
 
       <div class="card chart-card fade-in">
-        <h3 id="errorChartTitle" data-i18n="errorChartTitle">|pi_hat - pi| podle počtu hodů</h3>
+        <h3 id="errorChartTitle" data-i18n="errorChartTitle">|pi_hat - pi| podle poctu hodu</h3>
         <div class="chart-wrap"><canvas id="errorChart"></canvas></div>
+      </div>
+
+      <div class="card chart-card fade-in">
+        <h3>CI width of pi_hat over N_done</h3>
+        <div class="chart-wrap"><canvas id="ciWidthChart"></canvas></div>
+      </div>
+
+      <div class="card chart-card fade-in">
+        <h3>P_hat - P_theory over N_done</h3>
+        <div class="chart-wrap"><canvas id="pDiffChart"></canvas></div>
+      </div>
+
+      <div class="card chart-card fade-in">
+        <h3>log10(error) vs log10(N_done)</h3>
+        <p id="slopeText" class="note">Estimated slope: -</p>
+        <div class="chart-wrap"><canvas id="convChart"></canvas></div>
+      </div>
+
+      <div class="card fade-in">
+        <h3>Final deviations</h3>
+        <table class="deviation-table">
+          <tbody id="deviationTableBody">
+            <tr><th>P_hat - P_theory</th><td id="devPHat">-</td></tr>
+            <tr><th>abs error pi_hat</th><td id="devPiAbs">-</td></tr>
+            <tr><th>rel error pi_hat</th><td id="devPiRel">-</td></tr>
+          </tbody>
+        </table>
       </div>
 
       <div class="card viz-card fade-in" aria-labelledby="viz-title">
         <h3 id="viz-title" data-i18n="vizTitle">Vizualizace hodu</h3>
+        <div class="toggle-row">
+          <input id="keepNeedlesSwitch" type="checkbox">
+          <label for="keepNeedlesSwitch" data-i18n="keepNeedlesLabel">Uchovat vsechny jehly (ON/OFF)</label>
+        </div>
         <canvas id="throwCanvas" width="900" height="300"></canvas>
       </div>
 
       <details class="card theory fade-in">
         <summary data-i18n="theoryTitle">Teorie</summary>
         <div class="theory-content">
-          <p data-i18n="theoryCond">Podmínka průsečíku: <code>x &lt;= (l/2) * sin(theta)</code></p>
-          <p data-i18n="theoryVars">Proměnné: <code>x in [0, t/2]</code>, <code>theta in [0, pi/2]</code></p>
+          <p data-i18n="theoryCond">Podminka pruseciku: <code>x &lt;= (l/2) * sin(theta)</code></p>
+          <p data-i18n="theoryVars">Promenne: <code>x in [0, t/2]</code>, <code>theta in [0, pi/2]</code></p>
           <p data-i18n="theoryProcess">Prubeh simulace: v kazdem hodu se nahodne vylosuje <code>theta</code> a <code>x</code>, overi se podminka pruseciku a aktualizuje se pocitadlo <code>K</code>.</p>
           <p data-i18n="theoryCounts"><code>N_done</code> je pocet uz provedenych hodu, <code>K</code> je pocet pruseciku.</p>
           <p data-i18n="theoryPhat"><code>P_hat = K / N_done</code> je empiricky odhad pravdepodobnosti pruseciku ze simulace.</p>
           <p data-i18n="theoryShort">Pro <code>l &lt;= t</code>: <code>P = (2l)/(pi t)</code></p>
           <p data-i18n="theoryLong">Pro <code>l &gt; t</code>: <code>P = (2/pi) * ((l/t) - sqrt((l/t)^2 - 1) + arccos(t/l))</code></p>
-          <p data-i18n="theoryPi">Pro <code>l &lt;= t</code> odhad: <code>pi_hat = (2l * N_done) / (t * K)</code> při <code>K &gt; 0</code></p>
+          <p data-i18n="theoryPi">Pro <code>l &lt;= t</code> odhad: <code>pi_hat = (2l * N_done) / (t * K)</code> pri <code>K &gt; 0</code></p>
           <p data-i18n="theoryPiUse"><code>pi_hat</code> je odhad cisla <code>pi</code> ze simulace a ma smysl pouze pro <code>l &lt;= t</code>.</p>
           <p data-i18n="theoryErrors">Chyby: <code>abs error = |pi_hat - pi|</code>, <code>rel error = |pi_hat - pi| / pi</code>. S rostoucim <code>N_done</code> se odhad obvykle stabilizuje.</p>
+        </div>
+      </details>
+
+      <details class="card theory fade-in">
+        <summary>Metodika a limity</summary>
+        <div class="theory-content">
+          <p>Monte Carlo odhad konverguje pomalu; chyba typicky klesa priblizne jako <code>O(1/sqrt(N))</code>.</p>
+          <p><code>pi_hat</code> je validni estimator pouze pro <code>l &lt;= t</code>.</p>
+          <p>CI a z-test pouzivaji normalni aproximaci, ktera je presnejsi pro vetsi <code>N_done</code>.</p>
+          <p>Pri malem poctu pruseciku muze byt odhad nestabilni a intervaly siroke.</p>
         </div>
       </details>
     </section>
@@ -118,7 +166,7 @@
 
   <footer class="container app-footer">
     <small>
-      <span data-i18n="footerText">BuffonCalc - statická aplikace pro výuku pravděpodobnosti</span>
+      <span data-i18n="footerText">BuffonCalc - staticka aplikace pro vyuku pravdepodobnosti</span>
       |
       <a id="repoLink" href="https://github.com/Majkey25/buffoncalc.git" target="_blank" rel="noopener noreferrer" data-i18n="repoLinkText">Repozitar</a>
     </small>

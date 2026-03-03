@@ -284,6 +284,30 @@ summary:focus-visible {
   margin: 0.6rem 0;
 }
 
+.deviation-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.4rem;
+}
+
+.deviation-table th,
+.deviation-table td {
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  padding: 0.45rem 0.3rem;
+  font-size: 0.92rem;
+}
+
+.deviation-table th {
+  color: var(--muted);
+  width: 56%;
+}
+
+#stepExplain {
+  margin-top: 0.75rem;
+  min-height: 1.1rem;
+}
+
 .status {
   min-height: 1.2rem;
 }
