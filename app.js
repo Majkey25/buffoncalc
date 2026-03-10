@@ -4,8 +4,8 @@
   const defaults = {
     t: 10,
     l: 7,
-    N: 500000,
-    seed: 12345,
+    N: 50000,
+    seed: null,
     showSinglePreview: true,
     useExtendedFormula: false,
     lang: 'cs'
