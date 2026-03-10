@@ -13,6 +13,8 @@
 
   const translations = {
     cs: {
+      pageTitle: 'Buffonuv simulator jehly',
+      langSwitchAria: 'Prepnout jazyk',
       appTitle: 'Buffonuv simulator jehly',
       appSubtitle: 'Interaktivni kalkulacka a Monte Carlo simulace',
       languageLabel: 'Jazyk',
@@ -20,7 +22,7 @@
       lineDistanceLabel: 'Vzdalenost primek t',
       needleLengthLabel: 'Delka jehly l',
       throwsLabel: 'Pocet hodu N',
-      seedLabel: 'RNG seed (volitelne)',
+      seedLabel: 'Seed generatoru (volitelne)',
       seedPlaceholder: 'prazdne = Math.random',
       previewToggleLabel: 'Zobrazit nahled jednoho hodu',
       extendedToggleLabel: 'Pouzit rozsireny vzorec pro l > t',
@@ -30,11 +32,18 @@
       resumeBtn: 'Pokracovat',
       resetBtn: 'Reset',
       outputsTitle: 'Vystupy',
+      pTheoryLabel: 'Teoreticka pravdepodobnost P_theory',
       intersectionsLabel: 'Pruseciky K',
+      pHatLabel: 'Empiricka pravdepodobnost P_hat',
+      piHatLabel: 'Odhad pi_hat',
       absErrorLabel: 'Absolutni chyba',
       relErrorLabel: 'Relativni chyba',
       ciLowLabel: 'CI dolni (95%)',
       ciHighLabel: 'CI horni (95%)',
+      piCiLowLabel: 'Dolni mez CI pro pi_hat',
+      piCiHighLabel: 'Horni mez CI pro pi_hat',
+      piCiWidthLabel: 'Sirka CI pro pi_hat',
+      zTestLabel: 'z-test (P_hat vs P_theory)',
       ciNeedN: 'Pro normalni aproximaci CI je potreba N_done >= 30.',
       ciShown: '95% interval spolehlivosti (normalni aproximace).',
       progressLabel: 'Postup',
@@ -42,6 +51,25 @@
       errorChartTitle: '|pi_hat - pi| podle poctu hodu',
       piChartTitleProb: 'P_hat podle poctu hodu (l > t)',
       errorChartTitleProb: '|P_hat - P_theory| podle poctu hodu (l > t)',
+      piChartNote: 'Krivka ukazuje, jak se s pribyvajicimi hody stabilizuje odhad hodnoty pi. Pokud je <code>l > t</code> nebo zatim nelze spocitat <code>pi_hat</code>, graf misto toho sleduje odhad pravdepodobnosti pruseciku <code>P_hat</code>.',
+      piChartNoteProb: 'Krivka ukazuje, jak se s pribyvajicimi hody stabilizuje odhad pravdepodobnosti pruseciku <code>P_hat</code>. Ten se porovnava s teoretickou hodnotou odvozenou z Buffonovy ulohy.',
+      errorChartNote: 'Tady je videt, o kolik se aktualni odhad lisi od skutecne hodnoty. Klesajici prubeh znamena, ze simulace postupne konverguje.',
+      errorChartNoteProb: 'Graf ukazuje absolutni odchylku empiricke pravdepodobnosti <code>P_hat</code> od teoreticke hodnoty <code>P_theory</code>. Cim blize je krivka k nule, tim presneji simulace odpovida teorii.',
+      ciWidthChartTitle: 'Sirka intervalu spolehlivosti pro pi_hat',
+      ciWidthChartNote: 'Graf ukazuje nejistotu odhadu <code>pi_hat</code>. Mensi sirka 95% intervalu spolehlivosti znamena presnejsi odhad.',
+      pDiffChartTitle: 'Rozdil P_hat a P_theory podle poctu hodu',
+      pDiffChartNote: 'Sleduje odchylku mezi empirickou pravdepodobnosti pruseciku a teoretickou hodnotou. Hodnoty blizke nule znamenaji dobrou shodu simulace s teorii.',
+      convChartTitle: 'Log-log pohled na konvergenci chyby',
+      convChartNote: 'Po prepnuti obou os do logaritmickeho meritka je lepe videt rychlost zmensovani chyby. Sklon blizky -0.5 odpovida typicke Monte Carlo konvergenci <code>O(1/sqrt(N))</code>.',
+      finalDeviationsTitle: 'Konecne odchylky',
+      devPHatLabel: 'P_hat - P_theory',
+      devPiAbsLabel: 'Absolutni chyba pi_hat',
+      devPiRelLabel: 'Relativni chyba pi_hat',
+      methodologyTitle: 'Metodika a limity',
+      methodologyMonteCarlo: 'Monte Carlo odhad konverguje pomalu; chyba typicky klesa priblizne jako <code>O(1/sqrt(N))</code>.',
+      methodologyPiHat: '<code>pi_hat</code> je validni estimator pouze pro <code>l <= t</code>.',
+      methodologyCi: 'CI a z-test pouzivaji normalni aproximaci, ktera je presnejsi pro vetsi <code>N_done</code>.',
+      methodologyStability: 'Pri malem poctu pruseciku muze byt odhad nestabilni a intervaly siroke.',
       vizTitle: 'Vizualizace hodu',
       theoryTitle: 'Teorie',
       theoryCond: 'Podminka pruseciku: <code>x <= (l/2) * sin(theta)</code>',
@@ -53,7 +81,7 @@
       theoryLong: 'Pro <code>l > t</code>: <code>P = (2/pi) * ((l/t) - sqrt((l/t)^2 - 1) + arccos(t/l))</code>',
       theoryPi: 'Pro <code>l <= t</code> odhad: <code>pi_hat = (2l * N_done) / (t * K)</code> pri <code>K > 0</code>',
       theoryPiUse: '<code>pi_hat</code> je odhad cisla <code>pi</code> ze simulace a ma smysl pouze pro <code>l <= t</code>.',
-      theoryErrors: 'Chyby: <code>abs error = |pi_hat - pi|</code>, <code>rel error = |pi_hat - pi| / pi</code>. S rostoucim <code>N_done</code> se odhad obvykle stabilizuje.',
+      theoryErrors: 'Chyby: <code>absolutni chyba = |pi_hat - pi|</code>, <code>relativni chyba = |pi_hat - pi| / pi</code>. S rostoucim <code>N_done</code> se odhad obvykle stabilizuje.',
       footerText: 'BuffonCalc - staticka aplikace pro vyuku pravdepodobnosti',
       repoLinkText: 'Repozitar',
       ready: 'Pripraveno.',
@@ -70,16 +98,33 @@
       lastThrowHit: 'Posledni hod: prusecik',
       lastThrowMiss: 'Posledni hod: bez pruseciku',
       xAxisLabel: 'N_done',
+      xAxisLogLabel: 'log10(N_done)',
+      yAxisPiLabel: 'pi_hat',
+      yAxisProbLabel: 'P_hat',
+      yAxisPiErrorLabel: '|pi_hat - pi|',
+      yAxisProbErrorLabel: '|P_hat - P_theory|',
+      yAxisPiCiWidthLabel: 'sirka 95% CI pro pi_hat',
+      yAxisPDiffLabel: 'P_hat - P_theory',
+      yAxisLogErrorLabel: 'log10(chyba)',
+      seriesPiLabel: 'pi_hat',
+      seriesProbLabel: 'P_hat',
+      seriesPiErrorLabel: '|pi_hat - pi|',
+      seriesProbErrorLabel: '|P_hat - P_theory|',
+      seriesPiCiWidthLabel: 'sirka 95% CI pro pi_hat',
+      seriesPDiffLabel: 'P_hat - P_theory',
+      seriesConvLabel: 'log-log chyba',
       keepNeedlesLabel: 'Uchovat vsechny jehly',
-      stepModeOff: 'tezim step by step: OFF',
-      stepModeOn: 'tezim step by step: ON',
-      stepIdle: 'Step mode: zapni tlacitko a klikni Start.',
-      stepThrow: 'Step hod',
+      stepModeOff: 'Krokovy rezim: VYPNUTO',
+      stepModeOn: 'Krokovy rezim: ZAPNUTO',
+      stepIdle: 'Krokovy rezim je zapnuty. Start provede simulaci po jednotlivych hodech.',
+      stepThrow: 'Krok',
       slopeText: 'Odhad sklonu log-log: ',
       zReject: 'zamita H0 (p<0.05)',
       zKeep: 'nezamita H0 (p>=0.05)'
     },
     en: {
+      pageTitle: "Buffon's Needle Simulator",
+      langSwitchAria: 'Switch language',
       appTitle: "Buffon's Needle Simulator",
       appSubtitle: 'Interactive calculator and Monte Carlo simulation',
       languageLabel: 'Language',
@@ -97,11 +142,18 @@
       resumeBtn: 'Resume',
       resetBtn: 'Reset',
       outputsTitle: 'Outputs',
+      pTheoryLabel: 'Theoretical probability P_theory',
       intersectionsLabel: 'Intersections K',
+      pHatLabel: 'Empirical probability P_hat',
+      piHatLabel: 'Estimate pi_hat',
       absErrorLabel: 'Absolute error',
       relErrorLabel: 'Relative error',
       ciLowLabel: 'CI low (95%)',
       ciHighLabel: 'CI high (95%)',
+      piCiLowLabel: 'Lower CI bound for pi_hat',
+      piCiHighLabel: 'Upper CI bound for pi_hat',
+      piCiWidthLabel: 'CI width for pi_hat',
+      zTestLabel: 'z-test (P_hat vs P_theory)',
       ciNeedN: 'Needs N_done >= 30 for normal approximation CI.',
       ciShown: '95% confidence interval (normal approximation).',
       progressLabel: 'Progress',
@@ -109,6 +161,25 @@
       errorChartTitle: '|pi_hat - pi| over throws',
       piChartTitleProb: 'P_hat over throws (l > t)',
       errorChartTitleProb: '|P_hat - P_theory| over throws (l > t)',
+      piChartNote: 'This curve shows how the estimate of pi stabilizes as throws accumulate. If <code>l > t</code> or <code>pi_hat</code> is not available yet, the chart tracks the intersection probability estimate <code>P_hat</code> instead.',
+      piChartNoteProb: 'This curve shows how the intersection probability estimate <code>P_hat</code> stabilizes as throws accumulate. It can be compared directly with the theoretical value from Buffon\'s needle formula.',
+      errorChartNote: 'This chart shows how far the current estimate is from the target value. A downward trend means the simulation is converging.',
+      errorChartNoteProb: 'This chart shows the absolute gap between the empirical probability <code>P_hat</code> and the theoretical value <code>P_theory</code>. The closer the curve is to zero, the better the simulation matches theory.',
+      ciWidthChartTitle: 'Confidence interval width for pi_hat',
+      ciWidthChartNote: 'This chart shows uncertainty in <code>pi_hat</code>. A narrower 95% confidence interval means a more precise estimate.',
+      pDiffChartTitle: 'P_hat minus P_theory over throws',
+      pDiffChartNote: 'Tracks the gap between the simulated intersection probability and the theoretical value. Values near zero indicate good agreement with theory.',
+      convChartTitle: 'Log-log view of error convergence',
+      convChartNote: 'With both axes on a logarithmic scale, it is easier to see how fast the error shrinks. A slope near -0.5 matches typical Monte Carlo convergence <code>O(1/sqrt(N))</code>.',
+      finalDeviationsTitle: 'Final deviations',
+      devPHatLabel: 'P_hat - P_theory',
+      devPiAbsLabel: 'Absolute error of pi_hat',
+      devPiRelLabel: 'Relative error of pi_hat',
+      methodologyTitle: 'Methodology and limits',
+      methodologyMonteCarlo: 'Monte Carlo estimation converges slowly; the error typically decreases roughly like <code>O(1/sqrt(N))</code>.',
+      methodologyPiHat: '<code>pi_hat</code> is a valid estimator only for <code>l <= t</code>.',
+      methodologyCi: 'Confidence intervals and the z-test use a normal approximation, which is more reliable for larger <code>N_done</code>.',
+      methodologyStability: 'With few intersections, the estimate can be unstable and the intervals can be wide.',
       vizTitle: 'Throw visualization',
       theoryTitle: 'Theory',
       theoryCond: 'Intersection condition: <code>x <= (l/2) * sin(theta)</code>',
@@ -137,11 +208,26 @@
       lastThrowHit: 'Last throw: intersection',
       lastThrowMiss: 'Last throw: no intersection',
       xAxisLabel: 'N_done',
+      xAxisLogLabel: 'log10(N_done)',
+      yAxisPiLabel: 'pi_hat',
+      yAxisProbLabel: 'P_hat',
+      yAxisPiErrorLabel: '|pi_hat - pi|',
+      yAxisProbErrorLabel: '|P_hat - P_theory|',
+      yAxisPiCiWidthLabel: '95% CI width for pi_hat',
+      yAxisPDiffLabel: 'P_hat - P_theory',
+      yAxisLogErrorLabel: 'log10(error)',
+      seriesPiLabel: 'pi_hat',
+      seriesProbLabel: 'P_hat',
+      seriesPiErrorLabel: '|pi_hat - pi|',
+      seriesProbErrorLabel: '|P_hat - P_theory|',
+      seriesPiCiWidthLabel: '95% CI width for pi_hat',
+      seriesPDiffLabel: 'P_hat - P_theory',
+      seriesConvLabel: 'log-log error',
       keepNeedlesLabel: 'Keep all needles',
-      stepModeOff: 'tezim step by step: OFF',
-      stepModeOn: 'tezim step by step: ON',
+      stepModeOff: 'Step mode: OFF',
+      stepModeOn: 'Step mode: ON',
       stepIdle: 'Step mode: enable button and click Start.',
-      stepThrow: 'Step throw',
+      stepThrow: 'Step',
       slopeText: 'Estimated log-log slope: ',
       zReject: 'reject H0 (p<0.05)',
       zKeep: 'do not reject H0 (p>=0.05)'
@@ -202,7 +288,9 @@
     devPiRel: document.getElementById('devPiRel'),
     throwCanvas: document.getElementById('throwCanvas'),
     piChartTitle: document.getElementById('piChartTitle'),
-    errorChartTitle: document.getElementById('errorChartTitle')
+    errorChartTitle: document.getElementById('errorChartTitle'),
+    piChartNote: document.getElementById('piChartNote'),
+    errorChartNote: document.getElementById('errorChartNote')
   };
 
   const t = (key) => translations[state.lang][key] || key;
@@ -221,6 +309,8 @@
 
   function applyLanguage() {
     document.documentElement.lang = state.lang;
+    document.title = t('pageTitle');
+    dom.langSwitch.setAttribute('aria-label', t('langSwitchAria'));
     dom.langSwitch.setAttribute('aria-pressed', String(state.lang === 'en'));
     dom.langSwitch.querySelectorAll('.lang-chip').forEach((chip) => chip.classList.toggle('active', chip.dataset.lang === state.lang));
     document.querySelectorAll('[data-i18n]').forEach((el) => {
@@ -230,6 +320,7 @@
     dom.seedInput.placeholder = t('seedPlaceholder');
     syncKeepNeedlesSwitch();
     updateStepModeButton();
+    updateStaticChartLanguage();
     refreshOutputs();
     drawVisualization();
     updateCharts();
@@ -342,10 +433,29 @@
     const probView = longNeedle || noIntersectionsYet;
     dom.piChartTitle.textContent = probView ? t('piChartTitleProb') : t('piChartTitle');
     dom.errorChartTitle.textContent = probView ? t('errorChartTitleProb') : t('errorChartTitle');
+    dom.piChartNote.innerHTML = probView ? t('piChartNoteProb') : t('piChartNote');
+    dom.errorChartNote.innerHTML = probView ? t('errorChartNoteProb') : t('errorChartNote');
     if (state.charts.piChart) {
-      state.charts.piChart.data.datasets[0].label = probView ? 'P_hat' : 'pi_hat';
-      state.charts.errorChart.data.datasets[0].label = probView ? '|P_hat - P_theory|' : '|pi_hat - pi|';
+      state.charts.piChart.data.datasets[0].label = probView ? t('seriesProbLabel') : t('seriesPiLabel');
+      state.charts.errorChart.data.datasets[0].label = probView ? t('seriesProbErrorLabel') : t('seriesPiErrorLabel');
+      state.charts.piChart.options.scales.y.title.text = probView ? t('yAxisProbLabel') : t('yAxisPiLabel');
+      state.charts.errorChart.options.scales.y.title.text = probView ? t('yAxisProbErrorLabel') : t('yAxisPiErrorLabel');
     }
+  }
+
+  function updateStaticChartLanguage() {
+    if (!state.charts.piChart) return;
+    state.charts.piChart.options.scales.x.title.text = t('xAxisLabel');
+    state.charts.errorChart.options.scales.x.title.text = t('xAxisLabel');
+    state.charts.ciWidthChart.options.scales.x.title.text = t('xAxisLabel');
+    state.charts.pDiffChart.options.scales.x.title.text = t('xAxisLabel');
+    state.charts.convChart.options.scales.x.title.text = t('xAxisLogLabel');
+    state.charts.ciWidthChart.data.datasets[0].label = t('seriesPiCiWidthLabel');
+    state.charts.pDiffChart.data.datasets[0].label = t('seriesPDiffLabel');
+    state.charts.convChart.data.datasets[0].label = t('seriesConvLabel');
+    state.charts.ciWidthChart.options.scales.y.title.text = t('yAxisPiCiWidthLabel');
+    state.charts.pDiffChart.options.scales.y.title.text = t('yAxisPDiffLabel');
+    state.charts.convChart.options.scales.y.title.text = t('yAxisLogErrorLabel');
   }
 
   function pushSeriesPoint(nVal, m) {
@@ -535,29 +645,32 @@
     updateCharts(); refreshOutputs();
   }
 
-  function makeLineChart(canvasId, color, label) {
+  function makeLineChart(canvasId, color, labelKey, yAxisKey) {
     return new Chart(document.getElementById(canvasId), {
       type: 'line',
-      data: { datasets: [{ label, data: [], borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: (ctx) => (state.params.N <= 1000 ? 2 : 0), pointHoverRadius: 4 }] },
+      data: { datasets: [{ label: t(labelKey), data: [], borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: (ctx) => (state.params.N <= 1000 ? 2 : 0), pointHoverRadius: 4 }] },
       options: {
         responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
-        scales: { x: { type: 'linear', title: { display: true, text: t('xAxisLabel') } } },
+        scales: {
+          x: { type: 'linear', title: { display: true, text: t('xAxisLabel') } },
+          y: { type: 'linear', title: { display: true, text: t(yAxisKey) } }
+        },
         plugins: { legend: { display: false } }
       }
     });
   }
 
   function initCharts() {
-    state.charts.piChart = makeLineChart('piChart', '#2a6df4', 'pi_hat');
-    state.charts.errorChart = makeLineChart('errorChart', '#e65050', 'abs_error');
-    state.charts.ciWidthChart = makeLineChart('ciWidthChart', '#0f9d58', 'pi_hat_CI_width');
-    state.charts.pDiffChart = makeLineChart('pDiffChart', '#f39c12', 'P_hat_minus_P_theory');
+    state.charts.piChart = makeLineChart('piChart', '#2a6df4', 'seriesPiLabel', 'yAxisPiLabel');
+    state.charts.errorChart = makeLineChart('errorChart', '#e65050', 'seriesPiErrorLabel', 'yAxisPiErrorLabel');
+    state.charts.ciWidthChart = makeLineChart('ciWidthChart', '#0f9d58', 'seriesPiCiWidthLabel', 'yAxisPiCiWidthLabel');
+    state.charts.pDiffChart = makeLineChart('pDiffChart', '#f39c12', 'seriesPDiffLabel', 'yAxisPDiffLabel');
     state.charts.convChart = new Chart(document.getElementById('convChart'), {
       type: 'line',
-      data: { datasets: [{ label: 'log-log error', data: [], borderColor: '#6c5ce7', backgroundColor: '#6c5ce7', borderWidth: 2, pointRadius: (ctx) => (state.params.N <= 1000 ? 2 : 0), pointHoverRadius: 4 }] },
+      data: { datasets: [{ label: t('seriesConvLabel'), data: [], borderColor: '#6c5ce7', backgroundColor: '#6c5ce7', borderWidth: 2, pointRadius: (ctx) => (state.params.N <= 1000 ? 2 : 0), pointHoverRadius: 4 }] },
       options: {
         responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
-        scales: { x: { type: 'linear', title: { display: true, text: 'log10(N_done)' } }, y: { type: 'linear', title: { display: true, text: 'log10(error)' } } },
+        scales: { x: { type: 'linear', title: { display: true, text: t('xAxisLogLabel') } }, y: { type: 'linear', title: { display: true, text: t('yAxisLogErrorLabel') } } },
         plugins: { legend: { display: false } }
       }
     });
