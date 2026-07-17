@@ -11,124 +11,130 @@
     lang: 'cs'
   };
 
+  const maxVisualNeedles = 250;
+  const targetAnimationFrames = 200;
+
   const translations = {
     cs: {
-      pageTitle: 'Buffonuv simulator jehly',
-      langSwitchAria: 'Prepnout jazyk',
-      appTitle: 'Buffonuv simulator jehly',
-      appSubtitle: 'Interaktivni kalkulacka a Monte Carlo simulace',
+      pageTitle: 'Buffonův simulátor jehly',
+      skipLink: 'Přejít na kalkulačku',
+      langSwitchAria: 'Přepnout jazyk',
+      appTitle: 'Buffonův simulátor jehly',
+      appSubtitle: 'Interaktivní kalkulačka a Monte Carlo simulace',
       languageLabel: 'Jazyk',
-      inputsTitle: 'Vstupy',
-      lineDistanceLabel: 'Vzdalenost primek t',
-      needleLengthLabel: 'Delka jehly l',
-      throwsLabel: 'Pocet hodu N',
-      seedLabel: 'Seed generatoru (volitelne)',
-      seedPlaceholder: 'prazdne = Math.random',
-      previewToggleLabel: 'Zobrazit nahled jednoho hodu',
-      extendedToggleLabel: 'Pouzit rozsireny vzorec pro l > t',
-      extendedNote: 'Rozsireny vzorec se pouziva jen pro l > t.',
+      inputsTitle: 'Parametry experimentu',
+      lineDistanceLabel: 'Vzdálenost přímek t',
+      needleLengthLabel: 'Délka jehly l',
+      throwsLabel: 'Počet hodů N',
+      seedLabel: 'Seed generátoru (volitelné)',
+      seedPlaceholder: 'prázdné = Math.random',
+      previewToggleLabel: 'Zobrazit náhled jednoho hodu',
+      extendedToggleLabel: 'Použít rozšířený vzorec pro l > t',
+      extendedNote: 'Rozšířený vzorec se použije jen pro l > t.',
       startBtn: 'Start',
       pauseBtn: 'Pauza',
-      resumeBtn: 'Pokracovat',
+      resumeBtn: 'Pokračovat',
       resetBtn: 'Reset',
-      outputsTitle: 'Vystupy',
-      pTheoryLabel: 'Teoreticka pravdepodobnost P_theory',
-      intersectionsLabel: 'Pruseciky K',
-      pHatLabel: 'Empiricka pravdepodobnost P_hat',
-      piHatLabel: 'Odhad pi_hat',
-      absErrorLabel: 'Absolutni chyba',
-      relErrorLabel: 'Relativni chyba',
-      ciLowLabel: 'CI dolni (95%)',
-      ciHighLabel: 'CI horni (95%)',
-      piCiLowLabel: 'Dolni mez CI pro pi_hat',
-      piCiHighLabel: 'Horni mez CI pro pi_hat',
-      piCiWidthLabel: 'Sirka CI pro pi_hat',
+      outputsTitle: 'Výsledky simulace',
+      pTheoryLabel: 'Teoretická pravděpodobnost',
+      intersectionsLabel: 'Průsečíky K',
+      pHatLabel: 'Empirická pravděpodobnost',
+      piHatLabel: 'Odhad π',
+      absErrorLabel: 'Absolutní chyba',
+      relErrorLabel: 'Relativní chyba',
+      ciLowLabel: 'CI dolní (95 %)',
+      ciHighLabel: 'CI horní (95 %)',
+      piCiLowLabel: 'Dolní mez CI pro π',
+      piCiHighLabel: 'Horní mez CI pro π',
+      piCiWidthLabel: 'Šířka CI pro π',
       zTestLabel: 'z-test (P_hat vs P_theory)',
-      ciNeedN: 'Pro normalni aproximaci CI je potreba N_done >= 30.',
-      ciShown: '95% interval spolehlivosti (normalni aproximace).',
+      ciNeedN: 'Pro normální aproximaci CI je potřeba N_done >= 30.',
+      ciShown: '95% interval spolehlivosti (normální aproximace).',
       progressLabel: 'Postup',
-      piChartTitle: 'pi_hat podle poctu hodu',
-      errorChartTitle: '|pi_hat - pi| podle poctu hodu',
-      piChartTitleProb: 'P_hat podle poctu hodu (l > t)',
-      errorChartTitleProb: '|P_hat - P_theory| podle poctu hodu (l > t)',
-      piChartNote: 'Krivka ukazuje, jak se s pribyvajicimi hody stabilizuje odhad hodnoty pi. Pokud je <code>l > t</code> nebo zatim nelze spocitat <code>pi_hat</code>, graf misto toho sleduje odhad pravdepodobnosti pruseciku <code>P_hat</code>.',
-      piChartNoteProb: 'Krivka ukazuje, jak se s pribyvajicimi hody stabilizuje odhad pravdepodobnosti pruseciku <code>P_hat</code>. Ten se porovnava s teoretickou hodnotou odvozenou z Buffonovy ulohy.',
-      errorChartNote: 'Tady je videt, o kolik se aktualni odhad lisi od skutecne hodnoty. Klesajici prubeh znamena, ze simulace postupne konverguje.',
-      errorChartNoteProb: 'Graf ukazuje absolutni odchylku empiricke pravdepodobnosti <code>P_hat</code> od teoreticke hodnoty <code>P_theory</code>. Cim blize je krivka k nule, tim presneji simulace odpovida teorii.',
-      ciWidthChartTitle: 'Sirka intervalu spolehlivosti pro pi_hat',
-      ciWidthChartNote: 'Graf ukazuje nejistotu odhadu <code>pi_hat</code>. Mensi sirka 95% intervalu spolehlivosti znamena presnejsi odhad.',
-      pDiffChartTitle: 'Rozdil P_hat a P_theory podle poctu hodu',
-      pDiffChartNote: 'Sleduje odchylku mezi empirickou pravdepodobnosti pruseciku a teoretickou hodnotou. Hodnoty blizke nule znamenaji dobrou shodu simulace s teorii.',
+      analysisTitle: 'Analýza konvergence',
+      piChartTitle: 'π_hat podle počtu hodů',
+      errorChartTitle: '|π_hat − π| podle počtu hodů',
+      piChartTitleProb: 'P_hat podle počtu hodů',
+      errorChartTitleProb: '|P_hat − P_theory| podle počtu hodů',
+      piChartNote: 'Křivka ukazuje, jak se s přibývajícími hody stabilizuje odhad hodnoty <code>π</code>.',
+      piChartNoteProb: 'Křivka ukazuje, jak se s přibývajícími hody stabilizuje odhad pravděpodobnosti průsečíku <code>P_hat</code>.',
+      errorChartNote: 'Graf ukazuje, o kolik se aktuální odhad liší od skutečné hodnoty.',
+      errorChartNoteProb: 'Graf ukazuje absolutní odchylku <code>P_hat</code> od <code>P_theory</code>.',
+      ciWidthChartTitle: 'Šířka intervalu spolehlivosti pro π_hat',
+      ciWidthChartNote: 'Menší šířka 95% intervalu spolehlivosti znamená přesnější odhad.',
+      pDiffChartTitle: 'Rozdíl P_hat a P_theory podle počtu hodů',
+      pDiffChartNote: 'Hodnoty blízké nule znamenají dobrou shodu simulace s teorií.',
       convChartTitle: 'Log-log pohled na konvergenci chyby',
-      convChartNote: 'Po prepnuti obou os do logaritmickeho meritka je lepe videt rychlost zmensovani chyby. Sklon blizky -0.5 odpovida typicke Monte Carlo konvergenci <code>O(1/sqrt(N))</code>.',
-      finalDeviationsTitle: 'Konecne odchylky',
+      convChartNote: 'Sklon blízký −0,5 odpovídá typické Monte Carlo konvergenci <code>O(1/√N)</code>.',
+      finalDeviationsTitle: 'Konečné odchylky',
       devPHatLabel: 'P_hat - P_theory',
-      devPiAbsLabel: 'Absolutni chyba pi_hat',
-      devPiRelLabel: 'Relativni chyba pi_hat',
+      devPiAbsLabel: 'Absolutní chyba π_hat',
+      devPiRelLabel: 'Relativní chyba π_hat',
       methodologyTitle: 'Metodika a limity',
-      methodologyMonteCarlo: 'Monte Carlo odhad konverguje pomalu; chyba typicky klesa priblizne jako <code>O(1/sqrt(N))</code>.',
-      methodologyPiHat: '<code>pi_hat</code> je validni estimator pouze pro <code>l <= t</code>.',
-      methodologyCi: 'CI a z-test pouzivaji normalni aproximaci, ktera je presnejsi pro vetsi <code>N_done</code>.',
-      methodologyStability: 'Pri malem poctu pruseciku muze byt odhad nestabilni a intervaly siroke.',
-      vizTitle: 'Vizualizace hodu',
+      methodologyMonteCarlo: 'Monte Carlo odhad konverguje pomalu; chyba typicky klesá jako <code>O(1/sqrt(N))</code>.',
+      methodologyPiHat: '<code>pi_hat</code> je validní odhad pouze pro <code>l <= t</code>.',
+      methodologyCi: 'Intervaly spolehlivosti a z-test používají normální aproximaci.',
+      methodologyStability: 'Při malém počtu průsečíků může být odhad nestabilní.',
+      vizTitle: 'Vizualizace hodů',
       theoryTitle: 'Teorie',
-      theoryCond: 'Podminka pruseciku: <code>x <= (l/2) * sin(theta)</code>',
-      theoryVars: 'Promenne: <code>x in [0, t/2]</code>, <code>theta in [0, pi/2]</code>',
-      theoryProcess: 'Prubeh simulace: v kazdem hodu se nahodne vylosuje <code>theta</code> a <code>x</code>, overi se podminka pruseciku a aktualizuje se pocitadlo <code>K</code>.',
-      theoryCounts: '<code>N_done</code> je pocet uz provedenych hodu, <code>K</code> je pocet pruseciku.',
-      theoryPhat: '<code>P_hat = K / N_done</code> je empiricky odhad pravdepodobnosti pruseciku ze simulace.',
+      theoryCond: 'Podmínka průsečíku: <code>x <= (l/2) * sin(theta)</code>',
+      theoryVars: 'Proměnné: <code>x in [0, t/2]</code>, <code>theta in [0, pi/2]</code>',
+      theoryProcess: 'V každém hodu se náhodně vylosuje <code>theta</code> a <code>x</code>, ověří se průsečík a aktualizuje se <code>K</code>.',
+      theoryCounts: '<code>N_done</code> je počet provedených hodů, <code>K</code> je počet průsečíků.',
+      theoryPhat: '<code>P_hat = K / N_done</code> je empirický odhad pravděpodobnosti průsečíku.',
       theoryShort: 'Pro <code>l <= t</code>: <code>P = (2l)/(pi t)</code>',
       theoryLong: 'Pro <code>l > t</code>: <code>P = (2/pi) * ((l/t) - sqrt((l/t)^2 - 1) + arccos(t/l))</code>',
-      theoryPi: 'Pro <code>l <= t</code> odhad: <code>pi_hat = (2l * N_done) / (t * K)</code> pri <code>K > 0</code>',
-      theoryPiUse: '<code>pi_hat</code> je odhad cisla <code>pi</code> ze simulace a ma smysl pouze pro <code>l <= t</code>.',
-      theoryErrors: 'Chyby: <code>absolutni chyba = |pi_hat - pi|</code>, <code>relativni chyba = |pi_hat - pi| / pi</code>. S rostoucim <code>N_done</code> se odhad obvykle stabilizuje.',
-      footerText: 'BuffonCalc - staticka aplikace pro vyuku pravdepodobnosti',
-      repoLinkText: 'Repozitar',
-      ready: 'Pripraveno.',
-      clamped: 'Nektere neplatne hodnoty byly upraveny do povoleneho rozsahu.',
-      extendedDisabled: 'Rozsireny vzorec je vypnuty: P_theory neni dostupne pro l > t.',
-      piOnlyForShort: 'pi_hat plati jen pro l <= t',
-      notEnoughIntersections: 'zatim malo pruseciku',
-      runAnimated: 'Bezi animovana simulace...',
-      doneAnimated: 'Animovana simulace dokoncena.',
-      paused: 'Animace pozastavena.',
-      resumed: 'Animace obnovena.',
-      resetDone: 'Stav resetovan.',
-      previewHint: 'Zapnete nahled nebo spustte animovanou simulaci.',
-      lastThrowHit: 'Posledni hod: prusecik',
-      lastThrowMiss: 'Posledni hod: bez pruseciku',
+      theoryPi: 'Pro <code>l <= t</code>: <code>pi_hat = (2l * N_done) / (t * K)</code> při <code>K > 0</code>',
+      theoryPiUse: '<code>pi_hat</code> má smysl pouze pro <code>l <= t</code>.',
+      theoryErrors: 'Chyby: <code>|pi_hat - pi|</code> a <code>|pi_hat - pi| / pi</code>.',
+      footerText: 'BuffonCalc — statická aplikace pro výuku pravděpodobnosti',
+      repoLinkText: 'Repozitář',
+      ready: 'Připraveno.',
+      clamped: 'Některé neplatné hodnoty byly upraveny do povoleného rozsahu.',
+      extendedDisabled: 'Rozšířený vzorec je vypnutý: P_theory není pro l > t dostupná.',
+      piOnlyForShort: 'π_hat platí jen pro l <= t',
+      notEnoughIntersections: 'zatím málo průsečíků',
+      runAnimated: 'Simulace běží…',
+      doneAnimated: 'Simulace dokončena.',
+      paused: 'Simulace pozastavena.',
+      resumed: 'Simulace obnovena.',
+      resetDone: 'Stav resetován.',
+      previewHint: 'Zapněte náhled nebo spusťte simulaci.',
+      lastThrowHit: 'Poslední hod: průsečík',
+      lastThrowMiss: 'Poslední hod: bez průsečíku',
       xAxisLabel: 'N_done',
       xAxisLogLabel: 'log10(N_done)',
-      yAxisPiLabel: 'pi_hat',
+      yAxisPiLabel: 'π_hat',
       yAxisProbLabel: 'P_hat',
-      yAxisPiErrorLabel: '|pi_hat - pi|',
+      yAxisPiErrorLabel: '|π_hat - π|',
       yAxisProbErrorLabel: '|P_hat - P_theory|',
-      yAxisPiCiWidthLabel: 'sirka 95% CI pro pi_hat',
+      yAxisPiCiWidthLabel: 'šířka 95% CI pro π_hat',
       yAxisPDiffLabel: 'P_hat - P_theory',
-      yAxisLogErrorLabel: 'log10(chyba)',
-      seriesPiLabel: 'pi_hat',
+      yAxisLogErrorLabel: 'log10(chyby)',
+      seriesPiLabel: 'π_hat',
       seriesProbLabel: 'P_hat',
-      seriesPiErrorLabel: '|pi_hat - pi|',
+      seriesPiErrorLabel: '|π_hat - π|',
       seriesProbErrorLabel: '|P_hat - P_theory|',
-      seriesPiCiWidthLabel: 'sirka 95% CI pro pi_hat',
+      seriesPiCiWidthLabel: 'šířka 95% CI pro π_hat',
       seriesPDiffLabel: 'P_hat - P_theory',
       seriesConvLabel: 'log-log chyba',
-      keepNeedlesLabel: 'Uchovat vsechny jehly',
-      stepModeOff: 'Krokovy rezim: VYPNUTO',
-      stepModeOn: 'Krokovy rezim: ZAPNUTO',
-      stepIdle: 'Krokovy rezim je zapnuty. Start provede simulaci po jednotlivych hodech.',
+      keepNeedlesLabel: 'Zobrazit stopu posledních jehel',
+      stepModeOff: 'Krokový režim: VYPNUTO',
+      stepModeOn: 'Krokový režim: ZAPNUTO',
+      stepIdle: 'Krokový režim je zapnutý. Start provede simulaci po jednotlivých hodech.',
       stepThrow: 'Krok',
       slopeText: 'Odhad sklonu log-log: ',
-      zReject: 'zamita H0 (p<0.05)',
-      zKeep: 'nezamita H0 (p>=0.05)'
+      zReject: 'zamítá H0 (p<0,05)',
+      zKeep: 'nezamítá H0 (p>=0,05)'
     },
     en: {
       pageTitle: "Buffon's Needle Simulator",
+      skipLink: 'Skip to calculator',
       langSwitchAria: 'Switch language',
       appTitle: "Buffon's Needle Simulator",
       appSubtitle: 'Interactive calculator and Monte Carlo simulation',
       languageLabel: 'Language',
-      inputsTitle: 'Inputs',
+      inputsTitle: 'Experiment parameters',
       lineDistanceLabel: 'Line distance t',
       needleLengthLabel: 'Needle length l',
       throwsLabel: 'Throws N',
@@ -141,11 +147,11 @@
       pauseBtn: 'Pause',
       resumeBtn: 'Resume',
       resetBtn: 'Reset',
-      outputsTitle: 'Outputs',
-      pTheoryLabel: 'Theoretical probability P_theory',
+      outputsTitle: 'Simulation results',
+      pTheoryLabel: 'Theoretical probability',
       intersectionsLabel: 'Intersections K',
-      pHatLabel: 'Empirical probability P_hat',
-      piHatLabel: 'Estimate pi_hat',
+      pHatLabel: 'Empirical probability',
+      piHatLabel: 'Estimate π',
       absErrorLabel: 'Absolute error',
       relErrorLabel: 'Relative error',
       ciLowLabel: 'CI low (95%)',
@@ -157,10 +163,11 @@
       ciNeedN: 'Needs N_done >= 30 for normal approximation CI.',
       ciShown: '95% confidence interval (normal approximation).',
       progressLabel: 'Progress',
+      analysisTitle: 'Convergence analysis',
       piChartTitle: 'pi_hat over throws',
       errorChartTitle: '|pi_hat - pi| over throws',
-      piChartTitleProb: 'P_hat over throws (l > t)',
-      errorChartTitleProb: '|P_hat - P_theory| over throws (l > t)',
+      piChartTitleProb: 'P_hat over throws',
+      errorChartTitleProb: '|P_hat - P_theory| over throws',
       piChartNote: 'This curve shows how the estimate of pi stabilizes as throws accumulate. If <code>l > t</code> or <code>pi_hat</code> is not available yet, the chart tracks the intersection probability estimate <code>P_hat</code> instead.',
       piChartNoteProb: 'This curve shows how the intersection probability estimate <code>P_hat</code> stabilizes as throws accumulate. It can be compared directly with the theoretical value from Buffon\'s needle formula.',
       errorChartNote: 'This chart shows how far the current estimate is from the target value. A downward trend means the simulation is converging.',
@@ -223,7 +230,7 @@
       seriesPiCiWidthLabel: '95% CI width for pi_hat',
       seriesPDiffLabel: 'P_hat - P_theory',
       seriesConvLabel: 'log-log error',
-      keepNeedlesLabel: 'Keep all needles',
+      keepNeedlesLabel: 'Show recent needle trail',
       stepModeOff: 'Step mode: OFF',
       stepModeOn: 'Step mode: ON',
       stepIdle: 'Step mode: enable button and click Start.',
@@ -246,12 +253,14 @@
     charts: { piChart: null, errorChart: null, ciWidthChart: null, pDiffChart: null, convChart: null },
     series: { pi: [], absErr: [], piCiWidth: [], pDiff: [], conv: [] },
     chartStep: 50,
+    lastChartSample: 0,
     lang: defaults.lang,
-    keepAllNeedles: false,
+    showNeedleTrail: false,
     stepMode: false,
     stepDelayMs: 550,
     lastStepTs: 0,
-    needleHistory: []
+    needleTrail: [],
+    needleTrailCursor: 0
   };
 
   const dom = {
@@ -297,6 +306,16 @@
   const fmtNum = (v, digits = 6) => (Number.isFinite(v) ? Number(v).toFixed(digits) : '-');
   const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
   const setStatus = (msg) => { dom.status.textContent = msg; };
+  const experimentControls = [
+    dom.tInput,
+    dom.lInput,
+    dom.nInput,
+    dom.seedInput,
+    dom.previewToggle,
+    dom.extendedToggle,
+    dom.keepNeedlesSwitch,
+    dom.stepModeBtn
+  ];
 
   function normalCdf(x) {
     const z = Math.abs(x);
@@ -501,6 +520,7 @@
       dom.outAbsErr.textContent = m.absError === null ? '-' : fmtNum(m.absError, 6);
       dom.outRelErr.textContent = m.relError === null ? '-' : fmtNum(m.relError, 6);
     }
+    dom.outPiHat.classList.toggle('is-empty', m.piHat === null);
 
     dom.outCILow.textContent = m.ciLow === null ? '-' : fmtNum(m.ciLow, 6);
     dom.outCIHigh.textContent = m.ciHigh === null ? '-' : fmtNum(m.ciHigh, 6);
@@ -570,10 +590,10 @@
       ctx.fillText(t('previewHint'), 16, 28); return;
     }
 
-    if (state.keepAllNeedles && state.needleHistory.length > 0) {
+    if (state.showNeedleTrail && state.needleTrail.length > 0) {
       ctx.lineWidth = 1.15;
-      for (let i = 0; i < state.needleHistory.length; i += 1) {
-        const n = state.needleHistory[i]; const ep0 = buildNeedleEndpoints(n, state.params, w, h);
+      for (let i = 0; i < state.needleTrail.length; i += 1) {
+        const n = state.needleTrail[i]; const ep0 = buildNeedleEndpoints(n, state.params, w, h);
         ctx.strokeStyle = n.intersect ? 'rgba(230,80,80,0.32)' : 'rgba(42,109,244,0.32)';
         ctx.beginPath(); ctx.moveTo(ep0.x1, ep0.y1); ctx.lineTo(ep0.x2, ep0.y2); ctx.stroke();
       }
@@ -586,13 +606,30 @@
     ctx.fillText(throwData.intersect ? t('lastThrowHit') : t('lastThrowMiss'), 16, h - 14);
   }
 
-  function setRunButtons() { dom.startBtn.disabled = state.running; dom.pauseBtn.disabled = !state.running; dom.pauseBtn.textContent = state.paused ? t('resumeBtn') : t('pauseBtn'); }
-  function syncKeepNeedlesSwitch() { dom.keepNeedlesSwitch.checked = state.keepAllNeedles; }
+  function setRunButtons() {
+    dom.startBtn.disabled = state.running;
+    dom.pauseBtn.disabled = !state.running;
+    dom.pauseBtn.textContent = state.paused ? t('resumeBtn') : t('pauseBtn');
+    experimentControls.forEach((control) => { control.disabled = state.running; });
+  }
+  function syncKeepNeedlesSwitch() { dom.keepNeedlesSwitch.checked = state.showNeedleTrail; }
   function updateStepModeButton() { dom.stepModeBtn.textContent = state.stepMode ? t('stepModeOn') : t('stepModeOff'); if (!state.running) dom.stepExplain.textContent = state.stepMode ? t('stepIdle') : ''; }
 
+  function retainNeedleForVisualization(needle) {
+    if (!state.showNeedleTrail) return;
+    if (state.needleTrail.length < maxVisualNeedles) {
+      state.needleTrail.push(needle);
+      return;
+    }
+    state.needleTrail[state.needleTrailCursor] = needle;
+    state.needleTrailCursor = (state.needleTrailCursor + 1) % maxVisualNeedles;
+  }
+
   function sampleChartsIfNeeded(force = false) {
-    if (force || state.N_done % state.chartStep === 0 || state.N_done === state.params.N) {
+    const sampleDue = state.N_done - state.lastChartSample >= state.chartStep;
+    if ((force || sampleDue || state.N_done === state.params.N) && state.lastChartSample !== state.N_done) {
       pushSeriesPoint(state.N_done, computeMetrics());
+      state.lastChartSample = state.N_done;
       updateCharts();
     }
   }
@@ -620,7 +657,7 @@
         sampleChartsIfNeeded(true); refreshOutputs(); stopSimulation(); drawVisualization(); setStatus(t('doneAnimated')); dom.stepExplain.textContent = ''; return;
       }
 
-      let chunk = 130;
+      let chunk = Math.max(130, Math.ceil(state.params.N / targetAnimationFrames));
       if (state.params.N <= 300) chunk = 1; else if (state.params.N <= 2000) chunk = 5;
       if (state.stepMode) {
         if (state.lastStepTs && ts - state.lastStepTs < state.stepDelayMs) { state.rafId = requestAnimationFrame(tick); return; }
@@ -630,7 +667,7 @@
       chunk = Math.min(remaining, chunk);
       for (let i = 0; i < chunk; i += 1) {
         const th = buildNeedleRecord(simulateThrow(state.params.t, state.params.l, state.rng), state.rng);
-        state.N_done += 1; if (th.intersect) state.K += 1; state.lastThrow = th; state.needleHistory.push(th);
+        state.N_done += 1; if (th.intersect) state.K += 1; state.lastThrow = th; retainNeedleForVisualization(th);
         if (state.stepMode) dom.stepExplain.textContent = `${t('stepThrow')} ${state.N_done}: theta=${th.theta.toFixed(3)}, x=${th.x.toFixed(3)}, intersect=${th.intersect}`;
       }
       sampleChartsIfNeeded(false); refreshOutputs(); drawVisualization(); state.rafId = requestAnimationFrame(tick);
@@ -640,7 +677,7 @@
 
   function resetForNewRun() {
     stopSimulation();
-    state.N_done = 0; state.K = 0; state.lastThrow = null; state.lastStepTs = 0; state.needleHistory = [];
+    state.N_done = 0; state.K = 0; state.lastThrow = null; state.lastStepTs = 0; state.needleTrail = []; state.needleTrailCursor = 0; state.lastChartSample = 0;
     state.series.pi = []; state.series.absErr = []; state.series.piCiWidth = []; state.series.pDiff = []; state.series.conv = [];
     updateCharts(); refreshOutputs();
   }
@@ -691,22 +728,32 @@
     if (state.paused) { if (state.rafId !== null) cancelAnimationFrame(state.rafId); state.rafId = null; setStatus(t('paused')); }
     else { setStatus(t('resumed')); runAnimated(); }
   }
-  function onReset() { resetForNewRun(); state.params = parseAndClampInputs(); configureChartDensity(); state.rng = makeRng(state.params.seed); drawVisualization(); setStatus(t('resetDone')); }
-  function onToggleNeedleHistory() {
-    state.keepAllNeedles = dom.keepNeedlesSwitch.checked;
+  function onReset() { setStatus(t('resetDone')); state.params = parseAndClampInputs(); configureChartDensity(); state.rng = makeRng(state.params.seed); resetForNewRun(); drawVisualization(); }
+  function onExperimentConfigChange() {
+    setStatus(t('resetDone'));
+    state.params = parseAndClampInputs();
+    configureChartDensity();
+    state.rng = makeRng(state.params.seed);
+    resetForNewRun();
     drawVisualization();
   }
+  function onToggleNeedleTrail() {
+    state.showNeedleTrail = dom.keepNeedlesSwitch.checked;
+    drawVisualization();
+  }
+  function onTogglePreview() { state.params.showSinglePreview = dom.previewToggle.checked; drawVisualization(); }
   function onToggleStepMode() { state.stepMode = !state.stepMode; updateStepModeButton(); }
 
   function bindEvents() {
     dom.startBtn.addEventListener('click', onStart);
     dom.pauseBtn.addEventListener('click', onPauseResume);
     dom.resetBtn.addEventListener('click', onReset);
-    dom.keepNeedlesSwitch.addEventListener('change', onToggleNeedleHistory);
+    dom.keepNeedlesSwitch.addEventListener('change', onToggleNeedleTrail);
+    dom.previewToggle.addEventListener('change', onTogglePreview);
     dom.stepModeBtn.addEventListener('click', onToggleStepMode);
     dom.langSwitch.addEventListener('click', () => { state.lang = state.lang === 'cs' ? 'en' : 'cs'; localStorage.setItem('lang', state.lang); applyLanguage(); setStatus(t('ready')); });
-    [dom.tInput, dom.lInput, dom.nInput, dom.seedInput, dom.previewToggle, dom.extendedToggle].forEach((el) => {
-      el.addEventListener('change', () => { state.params = parseAndClampInputs(); configureChartDensity(); refreshOutputs(); drawVisualization(); });
+    [dom.tInput, dom.lInput, dom.nInput, dom.seedInput, dom.extendedToggle].forEach((el) => {
+      el.addEventListener('change', onExperimentConfigChange);
     });
     window.addEventListener('resize', drawVisualization);
   }
