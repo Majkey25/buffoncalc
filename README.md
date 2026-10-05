@@ -24,7 +24,7 @@ Runs as a fully static site on GitHub Pages (no backend, no build tools).
 - `index.html`
 - `styles.css`
 - `app.js`
-- Chart.js via CDN
+- Chart.js 4.4.2 served locally from `vendor`, with its MIT license notice
 
 ## Run locally
 
@@ -46,5 +46,7 @@ Open `index.html` in a browser.
 ```
 
 ## License
+
+[Privacy and terms](legal.html) cover browser storage, hosting and contact requests.
 
 MIT - see [LICENSE](LICENSE).

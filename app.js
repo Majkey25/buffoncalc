@@ -701,7 +701,7 @@
     state.charts.piChart = makeLineChart('piChart', '#2a6df4', 'seriesPiLabel', 'yAxisPiLabel');
     state.charts.errorChart = makeLineChart('errorChart', '#e65050', 'seriesPiErrorLabel', 'yAxisPiErrorLabel');
     state.charts.ciWidthChart = makeLineChart('ciWidthChart', '#0f9d58', 'seriesPiCiWidthLabel', 'yAxisPiCiWidthLabel');
-    state.charts.pDiffChart = makeLineChart('pDiffChart', '#f39c12', 'seriesPDiffLabel', 'yAxisPDiffLabel');
+    state.charts.pDiffChart = makeLineChart('pDiffChart', '#945500', 'seriesPDiffLabel', 'yAxisPDiffLabel');
     state.charts.convChart = new Chart(document.getElementById('convChart'), {
       type: 'line',
       data: { datasets: [{ label: t('seriesConvLabel'), data: [], borderColor: '#6c5ce7', backgroundColor: '#6c5ce7', borderWidth: 2, pointRadius: (ctx) => (state.params.N <= 1000 ? 2 : 0), pointHoverRadius: 4 }] },
@@ -751,14 +751,26 @@
     dom.keepNeedlesSwitch.addEventListener('change', onToggleNeedleTrail);
     dom.previewToggle.addEventListener('change', onTogglePreview);
     dom.stepModeBtn.addEventListener('click', onToggleStepMode);
-    dom.langSwitch.addEventListener('click', () => { state.lang = state.lang === 'cs' ? 'en' : 'cs'; localStorage.setItem('lang', state.lang); applyLanguage(); setStatus(t('ready')); });
+    dom.langSwitch.addEventListener('click', () => {
+      state.lang = state.lang === 'cs' ? 'en' : 'cs';
+      try { localStorage.setItem('lang', state.lang); } catch {
+        // Keep the selected language for this page when storage is disabled.
+      }
+      applyLanguage();
+      setStatus(t('ready'));
+    });
     [dom.tInput, dom.lInput, dom.nInput, dom.seedInput, dom.extendedToggle].forEach((el) => {
       el.addEventListener('change', onExperimentConfigChange);
     });
     window.addEventListener('resize', drawVisualization);
   }
 
-  function initLanguage() { const saved = localStorage.getItem('lang'); state.lang = saved === 'en' ? 'en' : 'cs'; applyLanguage(); }
+  function initLanguage() {
+    try { state.lang = localStorage.getItem('lang') === 'en' ? 'en' : 'cs'; } catch {
+      state.lang = defaults.lang;
+    }
+    applyLanguage();
+  }
 
   function init() {
     prefillFromQuery();
