@@ -13,6 +13,8 @@
 
   const maxVisualNeedles = 250;
   const targetAnimationFrames = 200;
+  const observeChartVisibility = typeof IntersectionObserver === 'function';
+  const visibleCharts = new WeakSet();
 
   const translations = {
     cs: {
@@ -496,11 +498,9 @@
     state.charts.ciWidthChart.data.datasets[0].data = state.series.piCiWidth;
     state.charts.pDiffChart.data.datasets[0].data = state.series.pDiff;
     state.charts.convChart.data.datasets[0].data = state.series.conv;
-    state.charts.piChart.update('none');
-    state.charts.errorChart.update('none');
-    state.charts.ciWidthChart.update('none');
-    state.charts.pDiffChart.update('none');
-    state.charts.convChart.update('none');
+    for (const chart of Object.values(state.charts)) {
+      if (!observeChartVisibility || visibleCharts.has(chart.canvas)) chart.update('none');
+    }
     const slope = estimateSlope(state.series.conv);
     dom.slopeText.textContent = `${t('slopeText')}${slope === null ? '-' : slope.toFixed(3)}`;
   }
@@ -710,6 +710,22 @@
         scales: { x: { type: 'linear', title: { display: true, text: t('xAxisLogLabel') } }, y: { type: 'linear', title: { display: true, text: t('yAxisLogErrorLabel') } } },
         plugins: { legend: { display: false } }
       }
+    });
+    if (observeChartVisibility) {
+      const observer = new IntersectionObserver(entries => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            visibleCharts.add(entry.target);
+            const chart = Object.values(state.charts).find(chart => chart.canvas === entry.target);
+            chart?.update('none');
+          } else visibleCharts.delete(entry.target);
+        }
+      });
+      for (const chart of Object.values(state.charts)) observer.observe(chart.canvas);
+    }
+    // Printing must include current data for charts outside the viewport too.
+    window.addEventListener('beforeprint', () => {
+      for (const chart of Object.values(state.charts)) chart.update('none');
     });
   }
 
