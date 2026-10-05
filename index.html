@@ -6,7 +6,7 @@
   <title>Buffonův simulátor jehly</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" defer></script>
+  <script src="vendor/chart-4.4.2.umd.min.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -116,7 +116,7 @@
             <label for="keepNeedlesSwitch" data-i18n="keepNeedlesLabel">Zobrazit stopu posledních jehel</label>
           </div>
         </div>
-        <canvas id="throwCanvas" width="900" height="300"></canvas>
+        <canvas id="throwCanvas" width="900" height="300" role="img" aria-labelledby="viz-title" aria-describedby="progress outputs-title"></canvas>
         <p id="progress" class="progress">Postup: 0 / 50000</p>
       </section>
 
@@ -125,34 +125,34 @@
         <div class="analysis-grid">
           <article class="chart-panel">
             <h4 id="piChartTitle" data-i18n="piChartTitle">π_hat podle počtu hodů</h4>
-            <div class="chart-wrap"><canvas id="piChart"></canvas></div>
+            <div class="chart-wrap"><canvas id="piChart" role="img" aria-labelledby="piChartTitle" aria-describedby="piChartNote"></canvas></div>
             <p id="piChartNote" class="note" data-i18n="piChartNote">Křivka ukazuje, jak se s přibývajícími hody stabilizuje odhad hodnoty π.</p>
           </article>
 
           <article class="chart-panel">
             <h4 id="errorChartTitle" data-i18n="errorChartTitle">|π_hat − π| podle počtu hodů</h4>
-            <div class="chart-wrap"><canvas id="errorChart"></canvas></div>
+            <div class="chart-wrap"><canvas id="errorChart" role="img" aria-labelledby="errorChartTitle" aria-describedby="errorChartNote"></canvas></div>
             <p id="errorChartNote" class="note" data-i18n="errorChartNote">Graf ukazuje, o kolik se aktuální odhad liší od skutečné hodnoty.</p>
           </article>
 
           <article class="chart-panel">
-            <h4 data-i18n="ciWidthChartTitle">Šířka intervalu spolehlivosti pro π_hat</h4>
-            <div class="chart-wrap"><canvas id="ciWidthChart"></canvas></div>
+            <h4 id="ciWidthChartTitle" data-i18n="ciWidthChartTitle">Šířka intervalu spolehlivosti pro π_hat</h4>
+            <div class="chart-wrap"><canvas id="ciWidthChart" role="img" aria-labelledby="ciWidthChartTitle" aria-describedby="outPiCIWidth"></canvas></div>
             <p class="note" data-i18n="ciWidthChartNote">Menší šířka 95% intervalu spolehlivosti znamená přesnější odhad.</p>
           </article>
 
           <article class="chart-panel">
-            <h4 data-i18n="pDiffChartTitle">Rozdíl P_hat a P_theory podle počtu hodů</h4>
-            <div class="chart-wrap"><canvas id="pDiffChart"></canvas></div>
+            <h4 id="pDiffChartTitle" data-i18n="pDiffChartTitle">Rozdíl P_hat a P_theory podle počtu hodů</h4>
+            <div class="chart-wrap"><canvas id="pDiffChart" role="img" aria-labelledby="pDiffChartTitle" aria-describedby="devPHat"></canvas></div>
             <p class="note" data-i18n="pDiffChartNote">Hodnoty blízké nule znamenají dobrou shodu simulace s teorií.</p>
           </article>
 
           <article class="chart-panel chart-panel-wide">
             <div class="section-heading">
-              <h4 data-i18n="convChartTitle">Log-log pohled na konvergenci chyby</h4>
+              <h4 id="convChartTitle" data-i18n="convChartTitle">Log-log pohled na konvergenci chyby</h4>
               <p id="slopeText" class="note">Odhad sklonu log-log: -</p>
             </div>
-            <div class="chart-wrap"><canvas id="convChart"></canvas></div>
+            <div class="chart-wrap"><canvas id="convChart" role="img" aria-labelledby="convChartTitle" aria-describedby="slopeText"></canvas></div>
             <p class="note" data-i18n="convChartNote">Sklon blízký −0,5 odpovídá typické Monte Carlo konvergenci O(1/√N).</p>
           </article>
         </div>
@@ -201,6 +201,7 @@
     <small>
       <span data-i18n="footerText">BuffonCalc — statická aplikace pro výuku pravděpodobnosti</span>
       <a id="repoLink" href="https://github.com/Majkey25/buffoncalc.git" target="_blank" rel="noopener noreferrer" data-i18n="repoLinkText">Repozitář</a>
+      · <a href="legal.html">Soukromí / Privacy · Podmínky / Terms</a>
     </small>
   </footer>
 </body>
