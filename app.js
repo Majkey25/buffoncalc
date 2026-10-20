@@ -351,7 +351,7 @@
     let changed = false;
     let tVal = Number.parseFloat(dom.tInput.value); if (!Number.isFinite(tVal)) tVal = defaults.t;
     let lVal = Number.parseFloat(dom.lInput.value); if (!Number.isFinite(lVal)) lVal = defaults.l;
-    let nVal = Number.parseInt(dom.nInput.value, 10); if (!Number.isFinite(nVal)) nVal = defaults.N;
+    let nVal = Math.trunc(Number.parseFloat(dom.nInput.value)); if (!Number.isFinite(nVal)) nVal = defaults.N;
     const tClamped = clamp(tVal, 0.0001, Number.MAX_SAFE_INTEGER);
     const lClamped = clamp(lVal, 0.0001, Number.MAX_SAFE_INTEGER);
     const nClamped = clamp(nVal, 1, 1000000);
@@ -359,7 +359,7 @@
 
     let seed = null;
     if (dom.seedInput.value.trim() !== '') {
-      const parsed = Number.parseInt(dom.seedInput.value, 10);
+      const parsed = Math.trunc(Number.parseFloat(dom.seedInput.value));
       if (Number.isFinite(parsed)) seed = parsed | 0; else { seed = defaults.seed; changed = true; }
     }
 
