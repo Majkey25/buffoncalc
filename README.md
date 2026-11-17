@@ -24,7 +24,7 @@ Runs as a fully static site on GitHub Pages (no backend, no build tools).
 - `index.html`
 - `styles.css`
 - `app.js`
-- Chart.js 4.4.2 served locally from `vendor`, with its MIT license notice
+- Chart.js 4.6.1 served locally from `vendor`, with its MIT license notice
 
 ## Run locally
 
