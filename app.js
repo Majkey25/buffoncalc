@@ -1,6 +1,28 @@
 (() => {
   'use strict';
 
+  // Preserve original whole-pixel chart sizes after Chart.js changed retinaScale.
+  // https://github.com/chartjs/Chart.js/blob/v4.6.1/src/helpers/helpers.dom.ts#L207-L244
+  class IntegerSizePlatform extends Chart.DomPlatform {
+    getMaximumSize(canvas, width, height, aspectRatio) {
+      const size = super.getMaximumSize(canvas, width, height, aspectRatio);
+      const ratio = this.getDevicePixelRatio();
+      this.bitmapWidth = Math.floor(size.width * ratio);
+      this.bitmapHeight = Math.floor(size.height * ratio);
+      return { width: Math.floor(size.width), height: Math.floor(size.height) };
+    }
+
+    restoreBitmapSize(chart) {
+      const canvas = chart.canvas;
+      if (canvas.width === this.bitmapWidth && canvas.height === this.bitmapHeight) return;
+      // The original renderer sized the bitmap before flooring the CSS dimensions.
+      canvas.width = this.bitmapWidth;
+      canvas.height = this.bitmapHeight;
+      const ratio = chart.currentDevicePixelRatio;
+      chart.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+  }
+
   const defaults = {
     t: 10,
     l: 7,
@@ -685,9 +707,11 @@
   function makeLineChart(canvasId, color, labelKey, yAxisKey) {
     return new Chart(document.getElementById(canvasId), {
       type: 'line',
+      platform: IntegerSizePlatform,
       data: { datasets: [{ label: t(labelKey), data: [], borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: (ctx) => (state.params.N <= 1000 ? 2 : 0), pointHoverRadius: 4 }] },
       options: {
         responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+        onResize: (chart) => chart.platform.restoreBitmapSize(chart),
         scales: {
           x: { type: 'linear', title: { display: true, text: t('xAxisLabel') } },
           y: { type: 'linear', title: { display: true, text: t(yAxisKey) } }
@@ -704,9 +728,11 @@
     state.charts.pDiffChart = makeLineChart('pDiffChart', '#945500', 'seriesPDiffLabel', 'yAxisPDiffLabel');
     state.charts.convChart = new Chart(document.getElementById('convChart'), {
       type: 'line',
+      platform: IntegerSizePlatform,
       data: { datasets: [{ label: t('seriesConvLabel'), data: [], borderColor: '#6c5ce7', backgroundColor: '#6c5ce7', borderWidth: 2, pointRadius: (ctx) => (state.params.N <= 1000 ? 2 : 0), pointHoverRadius: 4 }] },
       options: {
         responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+        onResize: (chart) => chart.platform.restoreBitmapSize(chart),
         scales: { x: { type: 'linear', title: { display: true, text: t('xAxisLogLabel') } }, y: { type: 'linear', title: { display: true, text: t('yAxisLogErrorLabel') } } },
         plugins: { legend: { display: false } }
       }
